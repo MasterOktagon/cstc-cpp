@@ -1,2 +1,5 @@
 CMakeFiles/
 CMake*
+.cache/
+.vscode/
+bin/
