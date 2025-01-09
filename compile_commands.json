@@ -1,0 +1,32 @@
+[
+{
+  "directory": "/home/oskar/Programmierprojekte/C*/cstc-cpp",
+  "command": "/usr/bin/c++   -W -Wall -Wextra -o CMakeFiles/cstc.dir/src/build.cpp.o -c \"/home/oskar/Programmierprojekte/C*/cstc-cpp/src/build.cpp\"",
+  "file": "/home/oskar/Programmierprojekte/C*/cstc-cpp/src/build.cpp"
+},
+{
+  "directory": "/home/oskar/Programmierprojekte/C*/cstc-cpp",
+  "command": "/usr/bin/c++   -W -Wall -Wextra -o CMakeFiles/cstc.dir/src/lexer/lexer.cpp.o -c \"/home/oskar/Programmierprojekte/C*/cstc-cpp/src/lexer/lexer.cpp\"",
+  "file": "/home/oskar/Programmierprojekte/C*/cstc-cpp/src/lexer/lexer.cpp"
+},
+{
+  "directory": "/home/oskar/Programmierprojekte/C*/cstc-cpp",
+  "command": "/usr/bin/c++   -W -Wall -Wextra -o CMakeFiles/cstc.dir/src/main.cpp.o -c \"/home/oskar/Programmierprojekte/C*/cstc-cpp/src/main.cpp\"",
+  "file": "/home/oskar/Programmierprojekte/C*/cstc-cpp/src/main.cpp"
+},
+{
+  "directory": "/home/oskar/Programmierprojekte/C*/cstc-cpp",
+  "command": "/usr/bin/c++   -W -Wall -Wextra -o CMakeFiles/cstc.dir/src/module.cpp.o -c \"/home/oskar/Programmierprojekte/C*/cstc-cpp/src/module.cpp\"",
+  "file": "/home/oskar/Programmierprojekte/C*/cstc-cpp/src/module.cpp"
+},
+{
+  "directory": "/home/oskar/Programmierprojekte/C*/cstc-cpp",
+  "command": "/usr/bin/c++   -W -Wall -Wextra -o CMakeFiles/cstc.dir/src/parser/parser.cpp.o -c \"/home/oskar/Programmierprojekte/C*/cstc-cpp/src/parser/parser.cpp\"",
+  "file": "/home/oskar/Programmierprojekte/C*/cstc-cpp/src/parser/parser.cpp"
+},
+{
+  "directory": "/home/oskar/Programmierprojekte/C*/cstc-cpp",
+  "command": "/usr/bin/c++   -W -Wall -Wextra -o CMakeFiles/cstc.dir/src/parser/symboltable.cpp.o -c \"/home/oskar/Programmierprojekte/C*/cstc-cpp/src/parser/symboltable.cpp\"",
+  "file": "/home/oskar/Programmierprojekte/C*/cstc-cpp/src/parser/symboltable.cpp"
+}
+]

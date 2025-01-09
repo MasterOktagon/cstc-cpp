@@ -1,0 +1,13 @@
+
+import test;
+
+int16 i;
+i = 5;
+uint8 c = 5 + i as uint8;
+
+{ i = 5; }
+
+print(test::b);
+print(c);
+
+
