@@ -28,6 +28,12 @@ Module::Module (std::string modulename, bool direct_filepath) : symbol::Namespac
         
             pos = modulename.find("::");
         }
+
+        pos = modulename.find("std/");
+        if(pos != std::string::npos){
+            modulename = STD_PATH + modulename.substr(5, modulename.size()-5);
+            module_name = module_name.substr(pos+1, module_name.size()-pos-1);
+        }
     }
     else{
         size_t pos = modulename.rfind(".");
