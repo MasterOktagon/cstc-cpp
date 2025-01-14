@@ -12,6 +12,7 @@
 #include "parser/symboltable.hpp"
 
 //#define DEBUG
+#define STD_PATH "/home/oskar/Programmierprojekte/C*/cstc-cpp/stdlib/"
 
 std::map<std::string, Module*> Module::unknown_modules = {};
 std::map<std::string, Module*> Module::known_modules = {};
@@ -273,8 +274,8 @@ void Module::addLangFn(){
 
     add("round", new symbol::Func(std::string("round"), std::string("int64"), std::vector({std::string("float32")})));
     add("round", new symbol::Func(std::string("round"), std::string("int64"), std::vector({std::string("float64")})));
-    add("round", new symbol::Func(std::string("round"), std::string("int64"), std::vector({std::string("float32"), std::string("uint8")})));
-    add("round", new symbol::Func(std::string("round"), std::string("int64"), std::vector({std::string("float64"), std::string("uint8")})));
+    add("round", new symbol::Func(std::string("round"), std::string("float32"), std::vector({std::string("float32"), std::string("uint8")})));
+    add("round", new symbol::Func(std::string("round"), std::string("float64"), std::vector({std::string("float64"), std::string("uint8")})));
 
     add("ceil", new symbol::Func(std::string("ceil"), std::string("int64"), std::vector({std::string("float32")})));
     add("ceil", new symbol::Func(std::string("ceil"), std::string("int64"), std::vector({std::string("float64")})));
