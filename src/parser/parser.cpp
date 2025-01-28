@@ -1020,7 +1020,7 @@ parser::AST* parser::parse(std::vector<lexer::Token> t, int local, symbol::Names
     Block* block = new parser::Block;
     while (i < t.size()){
         buffer.push_back(t[i]);
-        if (t[i].type == lexer::Token::TokenType::END_CMD && (i == 0 || t[0].type != lexer::Token::TokenType::BLOCK_OPEN) || t[i].type == lexer::Token::TokenType::BLOCK_CLOSE){
+        if ((t[i].type == lexer::Token::TokenType::END_CMD && (i == 0 || t[0].type != lexer::Token::TokenType::BLOCK_OPEN)) || t[i].type == lexer::Token::TokenType::BLOCK_CLOSE){
 
             AST* a = parse_one_of_ast(buffer, {
                 parser::parse_subblock,

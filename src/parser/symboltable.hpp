@@ -26,10 +26,8 @@ namespace symbol {
         std::string loc = "";
 
         public:
-        virtual std::string find (std::string name) = 0; // find var
-        virtual std::vector<Func*> find_fn(std::string name) = 0; // find func
-        virtual CompType* find_type(std::string name) = 0;
-        virtual Operator_fn* find_op(std::string op) = 0;
+        virtual std::string find (std::string name) = 0;
+        virtual std::vector<Func*> find_fn(std::string name) = 0;
 
         SymbolReference(){}
         
