@@ -10,6 +10,8 @@ using MultiMap = std::map<T, std::vector<S>>;
 namespace symbol {
 
     class Func;
+    class CompType;
+    class Operator_fn;
 
     class SymbolReference{
 
@@ -24,8 +26,10 @@ namespace symbol {
         std::string loc = "";
 
         public:
-        virtual std::string find (std::string name) = 0;
-        virtual std::vector<Func*> find_fn(std::string name) = 0;
+        virtual std::string find (std::string name) = 0; // find var
+        virtual std::vector<Func*> find_fn(std::string name) = 0; // find func
+        virtual CompType* find_type(std::string name) = 0;
+        virtual Operator_fn* find_op(std::string op) = 0;
 
         SymbolReference(){}
         
@@ -80,11 +84,32 @@ namespace symbol {
         std::string get_sig();
     };
 
+    class Operator_fn : public Func {};
+
     class SubBlock : public Namespace {
         SymbolReference* parent;
 
         public:
         SubBlock(SymbolReference* p){parent = p;}
+
+        virtual std::string find (std::string name);
+        virtual std::vector<Func*> find_fn (std::string name);
+    };
+
+    class CompType : public Namespace {
+        std::vector<CompType*> super = {};
+
+        public:
+
+        bool is_final = false;
+        bool is_interface = false;
+
+        static std::vector<std::string> promised_types;
+
+        CompType();
+
+        bool has_super(std::string name);
+        bool has_op(std::string op);
 
         virtual std::string find (std::string name);
         virtual std::vector<Func*> find_fn (std::string name);

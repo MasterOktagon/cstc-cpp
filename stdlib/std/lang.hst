@@ -1,0 +1,33 @@
+
+/*
+Unified programming Interface (UPI)
+*/
+
+
+interface Repr {
+    
+    friend String str();
+    
+    virtual protected String _str();
+}
+
+interface NullV<T> {
+    virtual public static T _nullv();
+}
+
+
+
+class String : NullV<String>{
+    private char[] data;
+    
+    public static String _nullv();
+}
+
+/*
+LANG functions
+*/
+
+String str(String s);
+String str(Repr r);
+
+

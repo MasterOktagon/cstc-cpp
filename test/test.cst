@@ -4,4 +4,3 @@ int16 b = 3;//(i + 2 - i + 101) as float32;
 print(b);
 
 
-

@@ -7,6 +7,11 @@ uint8 c = 5 + i as uint8;
 
 { i = 5; }
 
+/*
+Bla 
+/**/
+*/
+
 print(test::b);
 print(c);
 

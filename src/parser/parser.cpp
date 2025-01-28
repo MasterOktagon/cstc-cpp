@@ -78,7 +78,7 @@ void parser::error(std::string name, lexer::Token t, std::string msg, int code){
     }
 
 void parser::error(std::string name, lexer::Token t, lexer::Token t2, std::string msg, int code){
-        std::cerr << std::string("\e[1;31mERROR: ") + name + "\e[0m at + \e[1m" + t.filename + ":" + std::to_string(t.line) + ":" + std::to_string(t.column-1) + "\e[0m [E "+ std::to_string(code) +"]" + "\n" + msg << std::endl;
+        std::cerr << std::string("\e[1;31mERROR: ") + name + "\e[0m at \e[1m" + t.filename + ":" + std::to_string(t.line) + ":" + std::to_string(t.column-1) + "\e[0m [E "+ std::to_string(code) +"]" + "\n" + msg << std::endl;
         std::cerr << std::endl << " " << std::to_string(t.line) << " |\t" << t.line_content << std::endl;
         std::string pb = " ";
         
