@@ -33,6 +33,7 @@ std::string parser::match_cpp_types(std::string name){
     if (name == "uptr") {return "std::unique_ptr";}
     if (name == "Map") {return "std::map";}
     if (name == "Tuple") {return "std::tuple";}
+    if (name == "Deque") {return "std::deque";}
 
     return name;
 }
@@ -118,8 +119,7 @@ int parser::splitStack(std::vector<lexer::Token> t, std::initializer_list<lexer:
 
     int i;
     for(i=t.size()-1; i>=0 ; i--){
-        if (s.size() == 0 && std::find(delimiter.begin(), delimiter.end(), t[i].type) != delimiter.end()) return i;
-        else if (t[i].type == lexer::Token::TokenType::CLAMP_CLOSE || t[i].type == lexer::Token::TokenType::INDEX_CLOSE || t[i].type == lexer::Token::TokenType::BLOCK_CLOSE) {
+        if (t[i].type == lexer::Token::TokenType::CLAMP_CLOSE || t[i].type == lexer::Token::TokenType::INDEX_CLOSE || t[i].type == lexer::Token::TokenType::BLOCK_CLOSE) {
             s.push(t[i]);
         }
 
@@ -140,6 +140,7 @@ int parser::splitStack(std::vector<lexer::Token> t, std::initializer_list<lexer:
             if(s.top().type != lexer::Token::TokenType::BLOCK_CLOSE) parser::error("Unopened " + match_token_clamp(s.top().type), s.top(), "This " + match_token_clamp(s.top().type) + " was not opened" , 47);
             s.pop();
         }
+        if (s.size() == 0 && std::find(delimiter.begin(), delimiter.end(), t[i].type) != delimiter.end()) return i;
     
     }
     for(int j=0; j<s.size(); j++){
@@ -154,8 +155,7 @@ int parser::rsplitStack(std::vector<lexer::Token> t, std::initializer_list<lexer
 
     int i;
     for(i=0; i<t.size(); i++){
-        if (s.size() == 0 && std::find(delimiter.begin(), delimiter.end(), t[i].type) != delimiter.end()) return i;
-        else if (t[i].type == lexer::Token::TokenType::CLAMP_OPEN || t[i].type == lexer::Token::TokenType::INDEX_OPEN || t[i].type == lexer::Token::TokenType::BLOCK_OPEN) {
+        if (t[i].type == lexer::Token::TokenType::CLAMP_OPEN || t[i].type == lexer::Token::TokenType::INDEX_OPEN || t[i].type == lexer::Token::TokenType::BLOCK_OPEN) {
             s.push(t[i]);
         }
 
@@ -176,6 +176,7 @@ int parser::rsplitStack(std::vector<lexer::Token> t, std::initializer_list<lexer
             if(s.top().type != lexer::Token::TokenType::BLOCK_OPEN) parser::error("Unclosed " + match_token_clamp(s.top().type), s.top(), "This " + match_token_clamp(s.top().type) + " was not closed" , 47);
             s.pop();
         }
+        if (s.size() == 0 && std::find(delimiter.begin(), delimiter.end(), t[i].type) != delimiter.end()) return i;
     
     }
     for(int j=0; j<s.size(); j++){
@@ -481,7 +482,7 @@ parser::ExpressionAST* parser::parse_cast(std::vector<lexer::Token> t, int local
         a->updateType();
 
         ExpressionAST* t0 = parse_math(subvector(t, 0, 1, i), local, sr, a->type_ast->get_type());
-        if(t0 == nullptr) parser::error("Missing Expression", t[0], t[i], "Expected expression left of 'as'", 167);
+        if(t0 == nullptr) parser::error("Missing Expression", t[0], t[i-1], "Expected expression left of 'as'", 167);
         a->expr = t0;
         
         return a;
@@ -1012,6 +1013,12 @@ int parser::get_id(std::vector<lexer::Token> t, std::string& s){
     return i;
 }
 
+void print_tokens(std::vector<lexer::Token> tokens){
+    for (lexer::Token t : tokens)
+        std::cout << t.value << " ";
+    std::cout << std::endl;
+}
+
 parser::AST* parser::parse(std::vector<lexer::Token> t, int local, symbol::Namespace* sr){
 
     std::vector<lexer::Token> buffer = {};
@@ -1019,8 +1026,14 @@ parser::AST* parser::parse(std::vector<lexer::Token> t, int local, symbol::Names
     int i = 0;
     Block* block = new parser::Block;
     while (i < t.size()){
-        buffer.push_back(t[i]);
-        if ((t[i].type == lexer::Token::TokenType::END_CMD && (i == 0 || t[0].type != lexer::Token::TokenType::BLOCK_OPEN)) || t[i].type == lexer::Token::TokenType::BLOCK_CLOSE){
+
+        i = rsplitStack(t, {lexer::Token::TokenType::END_CMD, lexer::Token::TokenType::BLOCK_CLOSE}, local);
+        
+        //std::cout << t.size() << " " << i << std::endl;
+        buffer = subvector(t, 0, 1, ++i);
+        print_tokens(buffer);
+
+        //if ((t[i].type == lexer::Token::TokenType::END_CMD && (i == 0 || t[0].type != lexer::Token::TokenType::BLOCK_OPEN)) || t[i].type == lexer::Token::TokenType::BLOCK_CLOSE){
 
             AST* a = parse_one_of_ast(buffer, {
                 parser::parse_subblock,
@@ -1034,9 +1047,10 @@ parser::AST* parser::parse(std::vector<lexer::Token> t, int local, symbol::Names
             block->statements.push_back(a);
 
             buffer = {};
-        }
+        //}
 
-        i++;
+        //i++;
+        if (i != 0 && i != t.size()) t = subvector(t, i, 1, t.size()-1);
     }
 
     return block;
