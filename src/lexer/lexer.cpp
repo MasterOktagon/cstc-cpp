@@ -181,10 +181,12 @@ std::vector<lexer::Token> lexer::tokenize(std::string text, std::string filename
     bool in_string = false;
     bool in_char = false;
     bool in_inline_comment = false;
+    int ml_comment_level = 0;
     //bool in_multiline_comment = false;
     
     while ((size_t) i < text.size()){
         c++;
+        if (text[i] == '\n'){c = 1; l++;}
         if (in_inline_comment && text[i] != '\n'){
             i++;
             continue;
@@ -192,63 +194,58 @@ std::vector<lexer::Token> lexer::tokenize(std::string text, std::string filename
         Token::TokenType single_type = get_mark(text[i]);
         Token::TokenType dual_type = (size_t) i < (text.size() - 1) ?get_mark(std::string("") + text[i] + text[i+1]) : Token::TokenType::NONE;
         
-        if(((size_t) i < (text.size() - 1) ? std::string("") + text[i] + text[i+1] : "") == "/*"){
-            Token::TokenType type = get_token(buffer);
-            if (buffer != ""){
-                tokens.push_back(Token(type, buffer, getline_from_str(text, l), l, c-buffer.size(), filename));
-                buffer = "";
-            }
-            while ((size_t) i < text.size() && (((size_t) i < (text.size() - 1) ? std::string("") + text[i] + text[i+1] : "") != "*/")){
-                c++;
-                if (text[i] == '\n'){
-                    l++;
-                }
-                i++;
-            }
-            c += 2;
-            i += 2;
+        if (dual_type == lexer::Token::TokenType::ML_COMMENT_OPEN){
+            ml_comment_level += 1;
+            i++;
+            continue;
+        }
+        else if (dual_type == lexer::Token::TokenType::ML_COMMENT_CLOSE){
+            ml_comment_level -= 1;
+            i+=2;
+            continue;
         }
 
-        if (text[i] == '\n'){c = 1; l++;}
-        if (text[i] == '\"' && text[i-1] != '\\' && !in_char){
-            in_string = !in_string;
-        }
-        if (text[i] == '\'' && text[i-1] != '\\' && !in_string){
-            in_char = !in_char;
-        }
-        if (in_string || in_char){
-            buffer += text[i];
-        }
-        else if (dual_type == Token::TokenType::COMMENT){
-            in_inline_comment = true;
-        }
-        else if (text[i] == ' ' || text[i] == '\t' || text[i] == '\n' || i+1 >= text.size()){
-            Token::TokenType type = get_token(buffer);
-            if (buffer != ""){
-                tokens.push_back(Token(type, buffer, getline_from_str(text, l-bool(text[i]=='\n')), l, c-buffer.size(), filename));
-                buffer = "";
+        if(ml_comment_level <= 0){
+            if (text[i] == '\"' && text[i-1] != '\\' && !in_char){
+                in_string = !in_string;
             }
-            in_inline_comment = false;
-        }
-        else if (dual_type != Token::TokenType::NONE){
-            Token::TokenType type = get_token(buffer);
-            if (buffer != ""){
-                tokens.push_back(Token(type, buffer, getline_from_str(text, l), l, c-buffer.size(), filename));
-                buffer = "";
+            if (text[i] == '\'' && text[i-1] != '\\' && !in_string){
+                in_char = !in_char;
             }
-            tokens.push_back(Token(dual_type, std::string("") + text[i] + text[i+1], getline_from_str(text, l), l, c, filename));
-            i++;
-        }
-        else if (single_type != Token::TokenType::NONE){
-            Token::TokenType type = get_token(buffer);
-            if (buffer != ""){
-                tokens.push_back(Token(type, buffer, getline_from_str(text, l), l, c-buffer.size(), filename));
-                buffer = "";
+            if (in_string || in_char){
+                buffer += text[i];
             }
-            tokens.push_back(Token(single_type, std::string("") + text[i], getline_from_str(text, l), l, c, filename));
-        }
-        else{
-            buffer += text[i];
+            else if (dual_type == Token::TokenType::COMMENT){
+                in_inline_comment = true;
+            }
+            else if (text[i] == ' ' || text[i] == '\t' || text[i] == '\n' || i+1 >= text.size()){
+                Token::TokenType type = get_token(buffer);
+                if (buffer != ""){
+                    tokens.push_back(Token(type, buffer, getline_from_str(text, l-bool(text[i]=='\n')), l, c-buffer.size(), filename));
+                    buffer = "";
+                }
+                in_inline_comment = false;
+            }
+            else if (dual_type != Token::TokenType::NONE){
+                Token::TokenType type = get_token(buffer);
+                if (buffer != ""){
+                    tokens.push_back(Token(type, buffer, getline_from_str(text, l), l, c-buffer.size(), filename));
+                    buffer = "";
+                }
+                tokens.push_back(Token(dual_type, std::string("") + text[i] + text[i+1], getline_from_str(text, l), l, c, filename));
+                i++;
+            }
+            else if (single_type != Token::TokenType::NONE){
+                Token::TokenType type = get_token(buffer);
+                if (buffer != ""){
+                    tokens.push_back(Token(type, buffer, getline_from_str(text, l), l, c-buffer.size(), filename));
+                    buffer = "";
+                }
+                tokens.push_back(Token(single_type, std::string("") + text[i], getline_from_str(text, l), l, c, filename));
+            }
+            else{
+                buffer += text[i];
+            }
         }
         
         i++;
