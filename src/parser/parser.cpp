@@ -1029,31 +1029,50 @@ parser::AST* parser::parse(std::vector<lexer::Token> t, int local, symbol::Names
 
         i = rsplitStack(t, {lexer::Token::TokenType::END_CMD, lexer::Token::TokenType::BLOCK_CLOSE}, local);
         
-        //std::cout << t.size() << " " << i << std::endl;
         buffer = subvector(t, 0, 1, ++i);
-        print_tokens(buffer);
+        //print_tokens(buffer);
+        AST* a = parse_one_of_ast(buffer, {
+            parser::parse_subblock,
+            parse_import,
+            parser::parse_func_def,
+            parse_var_declare,
+            parse_var_set,
+            parse_var_init,
+            parse_expr,
+        }, local, sr);
 
-        //if ((t[i].type == lexer::Token::TokenType::END_CMD && (i == 0 || t[0].type != lexer::Token::TokenType::BLOCK_OPEN)) || t[i].type == lexer::Token::TokenType::BLOCK_CLOSE){
+        block->statements.push_back(a);
 
-            AST* a = parse_one_of_ast(buffer, {
-                parser::parse_subblock,
-                parse_import,
-                parse_var_declare,
-                parse_var_set,
-                parse_var_init,
-                parse_expr,
-            }, local, sr);
-
-            block->statements.push_back(a);
-
-            buffer = {};
-        //}
-
-        //i++;
+        buffer = {};
         if (i != 0 && i != t.size()) t = subvector(t, i, 1, t.size()-1);
     }
 
     return block;
+}
+
+parser::AST* parser::parse_func_def(std::vector<lexer::Token> t, int local, symbol::Namespace* sr){
+    if (t.size() == 0) return nullptr;
+    int i = parser::splitStack(t, {lexer::Token::TokenType::BLOCK_OPEN}, local);
+    if (i > 0 && i < t.size()-1){
+        t = subvector(t, 0,1,i);
+        i = parser::splitStack(t, {lexer::Token::TokenType::ID}, local);
+        //print_tokens(t);
+        #ifdef DEBUG
+            std::cout << "parse_func_def: " << i << "/" << t.size()-1 << std::endl;
+        #endif
+
+        parser::TypeAST* ret_type = parser::parse_type(subvector(t, 0,1,i), local, sr);
+        if(ret_type == nullptr) parser::error("Type expected", t[0], t[i-1], "Expected a return type", 1672);
+
+        symbol::SubBlock* sb = new symbol::SubBlock(sr);
+        
+
+        AST* p = new parser::FuncDefAST;
+
+        return p;
+    }
+
+    return nullptr;
 }
 
 parser::AST* parser::parse_subblock(std::vector<lexer::Token> t, int local, symbol::Namespace* sr){
@@ -1068,28 +1087,8 @@ parser::AST* parser::parse_subblock(std::vector<lexer::Token> t, int local, symb
             std::vector<lexer::Token> buffer = {};
             symbol::SubBlock* sb = new symbol::SubBlock(sr);
             
-            int i = 0;
-            Block* block = new parser::Block;
-            while (i < t.size()){
-                buffer.push_back(t[i]);
-                if (t[i].type == lexer::Token::TokenType::END_CMD && (i == 0 || t[0].type != lexer::Token::TokenType::BLOCK_OPEN) || t[i].type == lexer::Token::TokenType::BLOCK_CLOSE){
+            parser::AST* block = parser::parse(t, local + 1, sb);
 
-                    AST* a = parse_one_of_ast(buffer, {
-                        parser::parse_subblock,
-                        parse_import,
-                        parse_var_declare,
-                        parse_var_set,
-                        parse_var_init,
-                        parse_expr
-                    }, local, sb);
-
-                    block->statements.push_back(a);
-
-                    buffer = {};
-                }
-
-                i++;
-            }
             #ifdef DEBUG
                 std::cout << "SUBBLOCK END" << std::endl;
             #endif

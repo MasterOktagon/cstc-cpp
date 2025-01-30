@@ -5,7 +5,14 @@ int16 i;
 i = 5;
 uint8 c = 5 + i as uint8;
 
-{ i = 5; }
+{
+    i = 5;
+    int16 a = 3;
+}
+
+int16 foo(){
+    return 0;
+}
 
 /*
 Bla 

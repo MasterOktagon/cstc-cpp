@@ -492,6 +492,7 @@ namespace parser {
     extern AST* parse_expr(std::vector<lexer::Token>, int local, symbol::Namespace* sr);
     extern AST* parse_import(std::vector<lexer::Token>, int local, symbol::Namespace* sr);
     extern AST* parse_subblock(std::vector<lexer::Token>, int local, symbol::Namespace* sr);
+    extern AST* parse_func_def(std::vector<lexer::Token>, int local, symbol::Namespace* sr);
 
     extern std::string match_cpp_types(std::string name);
     extern bool type_eq(std::string a, std::string b);
