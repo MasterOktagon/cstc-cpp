@@ -1056,7 +1056,7 @@ parser::AST* parser::parse_func_def(std::vector<lexer::Token> t, int local, symb
     if (i > 0 && i < t.size()-1){
         t = subvector(t, 0,1,i);
         i = parser::splitStack(t, {lexer::Token::TokenType::ID}, local);
-        //print_tokens(t);
+        
         #ifdef DEBUG
             std::cout << "parse_func_def: " << i << "/" << t.size()-1 << std::endl;
         #endif
@@ -1065,7 +1065,9 @@ parser::AST* parser::parse_func_def(std::vector<lexer::Token> t, int local, symb
         if(ret_type == nullptr) parser::error("Type expected", t[0], t[i-1], "Expected a return type", 1672);
 
         symbol::SubBlock* sb = new symbol::SubBlock(sr);
-        
+        auto t2 = subvector(t, 2,0,t.size());
+        //print_tokens(t2);
+        if(t2.size()==0) parser::error("Clamp expected", t[1], "Expected a clamp after funtion named", 3434);
 
         AST* p = new parser::FuncDefAST;
 
