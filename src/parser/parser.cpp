@@ -1052,24 +1052,36 @@ parser::AST* parser::parse(std::vector<lexer::Token> t, int local, symbol::Names
 
 parser::AST* parser::parse_func_def(std::vector<lexer::Token> t, int local, symbol::Namespace* sr){
     if (t.size() == 0) return nullptr;
-    int i = parser::splitStack(t, {lexer::Token::TokenType::BLOCK_OPEN}, local);
+    int j, i = parser::splitStack(t, {lexer::Token::TokenType::BLOCK_OPEN}, local);
     if (i > 0 && i < t.size()-1){
-        t = subvector(t, 0,1,i);
+        auto tokens = subvector(t, 0,1,i);
         i = parser::splitStack(t, {lexer::Token::TokenType::ID}, local);
         
         #ifdef DEBUG
-            std::cout << "parse_func_def: " << i << "/" << t.size()-1 << std::endl;
+            std::cout << "parse_func_def: " << i << "/" << tokens.size()-1 << std::endl;
         #endif
 
-        parser::TypeAST* ret_type = parser::parse_type(subvector(t, 0,1,i), local, sr);
-        if(ret_type == nullptr) parser::error("Type expected", t[0], t[i-1], "Expected a return type", 1672);
+        parser::TypeAST* ret_type = parser::parse_type(subvector(tokens, 0,1,i), local, sr);
+        if(ret_type == nullptr) parser::error("Type expected", tokens[0], tokens[i-1], "Expected a return type", 1672);
 
         symbol::SubBlock* sb = new symbol::SubBlock(sr);
+
         auto t2 = subvector(t, 2,0,t.size());
         //print_tokens(t2);
         if(t2.size()==0) parser::error("Clamp expected", t[1], "Expected a clamp after funtion named", 3434);
 
-        AST* p = new parser::FuncDefAST;
+        FuncDefAST* p = new parser::FuncDefAST();
+        i = parser::splitStack(t, {lexer::Token::TokenType::CLAMP_OPEN}, local);
+        j = parser::rsplitStack(t, {lexer::Token::TokenType::CLAMP_CLOSE}, local);
+        //print_tokens(subvector(t, i, 0, j+1));
+        tokens = subvector(t, i, 0, j+1);
+
+        i = parser::splitStack(t, {lexer::Token::TokenType::BLOCK_OPEN}, local);
+        //print_tokens(subvector(t, i+1, 0, t.size()-1));
+        if(t[t.size()-1].type != lexer::Token::TokenType::BLOCK_CLOSE) parser::error("Unclosed BLOCK", t[i], "This BLOCK was not closed" , 47);
+        p->contents = (Block*) parse(subvector(t, i+1, 0, t.size()-1), local-1, sb);
+        
+        p->signature = sr->find_fn("print")[0];
 
         return p;
     }
