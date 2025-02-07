@@ -1,0 +1,53 @@
+
+/*
+
+implements a duoble List
+*/
+
+import std::exceptions;
+
+implements module List;
+
+List<Tmp>::List(){
+    l = 0;  
+}
+
+List<Tmp> List<Tmp>::_nullv(){
+    return List<Tmp>();
+}
+
+size List<Tmp>::len(){
+    return l;
+}
+
+void List<Tmp>::insert(Tmp el, size idx){
+    if idx < 0 {idx += l;}
+    if !(0 <= idx < l) {throw std::exceptions::IndexError(idx,"List of size " + str(l));}
+
+    Node*? cur @_this = begin;
+    for i : [::idx] {
+        cur = cur.next;
+    }
+
+    Node* n @_this = new Node {data = el, next=cur.next, prev=cur};
+    cur.next = n;
+    n.next.prev = n;
+}
+
+void List<Tmp>::prepend(Tmp el){
+    insert(el, 0);
+}
+void List<Tmp>::append(Tmp el){
+    insert(el, -1);
+}
+
+Tmp List<Tmp>::pop(size idx){
+    if idx < 0 {idx += l;}
+    if !(0 <= idx < l) {throw std::exceptions::IndexError(idx,"List of size " + str(l));}
+
+    Node*? cur @_this = begin;
+    for i : [::idx] {
+        cur = cur.next;
+    }
+}
+

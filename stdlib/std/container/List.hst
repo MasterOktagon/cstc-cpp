@@ -1,0 +1,135 @@
+/*
+
+Fundamental (double) linked list class
+
+*/
+
+class List<Tmp> : Container, Iterable<List<Tmp>>, Repr {
+
+    public List (Container<Tmp> inp);
+    /*
+        create a List from another container
+
+        [param inp] data to create from
+    */
+    protected List ();
+    /*
+        nullv constructor. Use `List<T> t = [];` or `null(List<T>)` to call
+    */
+    protected static List<Tmp> _nullv();
+
+    protected String _str();
+
+    // Inherited by container
+
+    public size len();
+    /*
+        get the Lists length
+    */
+    public void prepend(Tmp el);
+    /*
+        prepend one element
+
+        [param el] Element to be prepended
+    */
+    public void prepend(Container<Tmp> el);
+    /*
+        prepend multiple elements
+
+        [param el] Elements to be prepended (Container)
+    */
+    public void append(Tmp el);
+    /*
+        append one element
+
+        [param el] Element to be appended (Container)
+    */
+    public void append(Container<Tmp> el);
+    /*
+        append multiple elements
+
+        [param el] Elements to be appended (Container)
+    */
+    public void remove(Tmp el);
+    /*
+        remove an element from this list.
+        Uses operator == to check equality.
+        Does nothing if element wasn't found.
+
+        [param el] element to remove
+    */
+    public void remove(Tmp el, [bool<-Tmp, Tmp] fn);
+    /*
+        remove an element from this list.
+        Does nothing if element wasn't found.
+
+        [param el] element to remove
+        [param fn] equality checker function
+    */
+    public void insert(Tmp el, size idx=0);
+    /*
+        insert an element at a certain index.
+
+        [param el] element to insert
+        [param idx] index to append BEFORE. Defaults to 0 (behaves as prepend)
+
+        !raises! IndexError
+    */
+    public Tmp  pop(size index);
+    /*
+        remove and return an element
+
+        [param index] index to pop at
+
+        !raises! IndexError
+    */
+    public Tmp  rpop(size index);
+    /*
+        remove and return an element from the back
+
+        [param index] index to pop at (from back)
+
+        !raises! IndexError
+    */
+    public size? find(Tmp el);
+    /*
+        get the index of the first equal element in this List.
+        Uses operator == to check equaltiy.
+
+        [param el] element to find
+
+        [return] null if element was not found, else element index
+    */
+    public size? rfind(Tmp el);
+    /*
+        get the index of the last equal element in this List.
+        Uses operator == to check equaltiy.
+
+        [param el] element to find
+
+        [return] null if element was not found, else element index from back
+    */
+    public void swap(size i1, size i2);
+    /*
+        Swap two elements by index
+
+        !raises! IndexError
+    */
+
+    bool      operator :  (Tmp el);
+    bool      operator == (List<Tmp> other);
+    Tmp       operator [] (size idx);
+    List<Tmp> operator [] (Range r);
+    
+    // PRIVATE
+
+    Node*? begin = null;
+    private size l;
+
+    private final struct Node<Tmp> @life {
+        Tmp data;
+        Node*? next @life;
+        Node*? prev @life;
+    }
+}
+

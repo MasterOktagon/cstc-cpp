@@ -417,7 +417,7 @@ namespace parser {
 
         virtual std::string to_cpp(){
             std::string s = "";
-            for (AST* a : statements) s += a->to_cpp() + "\n";
+            for (AST* a : statements) s += std::string("\t") + a->to_cpp() + "\n";
             return s;
         };
 
@@ -439,10 +439,20 @@ namespace parser {
         public:
 
         Block* contents;
-        symbol::Func* signature;
+        std::string name = "";
+        std::string ret_type = "";
+        std::vector<std::string> params = {};
+        std::vector<std::string> types = {};
 
         virtual std::string to_cpp(){
-            return signature->get_sig() + "{\n" + contents->to_cpp() + "\n}\n";
+            std::string out = match_cpp_types(ret_type) + " " + name + "(";
+            for (int i=0; i<params.size(); i++){
+                out += match_cpp_types(types[i]) + " " + params[i] + ",";
+            }
+            out = out.substr(0,out.size()-1);
+            
+            out += std::string(")") + "{\n" + contents->to_cpp() + "}\n";
+            return out;
         };
 
         FuncDefAST(){}

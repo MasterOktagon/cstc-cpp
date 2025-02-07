@@ -1056,6 +1056,7 @@ parser::AST* parser::parse_func_def(std::vector<lexer::Token> t, int local, symb
     if (i > 0 && i < t.size()-1){
         auto tokens = subvector(t, 0,1,i);
         i = parser::splitStack(t, {lexer::Token::TokenType::ID}, local);
+        std::string name = t[i].value;
         
         #ifdef DEBUG
             std::cout << "parse_func_def: " << i << "/" << tokens.size()-1 << std::endl;
@@ -1073,6 +1074,50 @@ parser::AST* parser::parse_func_def(std::vector<lexer::Token> t, int local, symb
         FuncDefAST* p = new parser::FuncDefAST();
         i = parser::splitStack(t, {lexer::Token::TokenType::CLAMP_OPEN}, local);
         j = parser::rsplitStack(t, {lexer::Token::TokenType::CLAMP_CLOSE}, local);
+        auto t3 = subvector(t, i+1,1,j);
+        int k = parser::rsplitStack(t3, {lexer::Token::TokenType::COMMA}, local+1);
+        int lastk = 0;
+        //print_tokens(subvector(t, i+1,1,j));
+        #ifdef DEBUG
+            std::cout << "parse_func_def|params: " << k << "/" <<t3.size() << std::endl;
+        #endif
+
+        std::vector<std::string> params = {};
+        std::vector<std::string> types = {};
+        
+        while (k < int(t3.size())) {
+            if (k < int(t3.size())){
+                if (t3[k-1].type != lexer::Token::TokenType::ID) parser::error("local variable name expected", t3[k-2], "After a comma a local variable is expected", 456);
+                TypeAST* a = parse_type(subvector(t3, 0,1,k-1), local, sr);
+                if (a == nullptr) parser::error("Expected type", t3[lastk+1], t3[k-1], "A local variable requires a type known at compile time", 4893);
+                params.push_back(t3[k-1].value);
+                types.push_back(a->get_type());
+                //std::cout << t3[k-1].value << std::endl;
+                sb->add(t3[k-1].value, new symbol::Var(t3[k-1].value, a->get_type()));
+            }
+            t3 = subvector(t3, k+1,1,t3.size());
+            lastk = k;
+            k = parser::rsplitStack(t, {lexer::Token::TokenType::COMMA}, local+1);
+            #ifdef DEBUG
+                std::cout << "parse_func_def|params: " << k << "/" <<t3.size() << std::endl;
+            #endif
+        }
+
+        //#ifdef DEBUG
+        //    std::cout << "parse_func_def|params: " << k << "/" <<t3.size() << std::endl;
+        //#endif
+
+        if (t3.size()-1 > 0){
+            if (t3[t3.size()-1].type != lexer::Token::TokenType::ID) parser::error("local variable name expected", t3[t3.size()-2], "After a comma a local variable is expected", 456);
+            TypeAST* a = parse_type(subvector(t3, 0,1,t3.size()-1), local, sr);
+            if (a == nullptr) parser::error("Expected type", t3[lastk+1], t3[t3.size()-1], "A local variable requires a type known at compile time", 4893);
+            params.push_back(t3[t3.size()-1].value);
+            types.push_back(a->get_type());
+            sb->add(t3[t3.size()-1].value, new symbol::Var(t3[t3.size()-1].value, a->get_type()));
+        }
+        else {
+            parser::error("local variable name expected", t3[t3.size()-2], "After a comma a local variable is expected", 456);
+        }
         //print_tokens(subvector(t, i, 0, j+1));
         tokens = subvector(t, i, 0, j+1);
 
@@ -1081,7 +1126,12 @@ parser::AST* parser::parse_func_def(std::vector<lexer::Token> t, int local, symb
         if(t[t.size()-1].type != lexer::Token::TokenType::BLOCK_CLOSE) parser::error("Unclosed BLOCK", t[i], "This BLOCK was not closed" , 47);
         p->contents = (Block*) parse(subvector(t, i+1, 0, t.size()-1), local-1, sb);
         
-        p->signature = sr->find_fn("print")[0];
+        auto f = new symbol::Func(name, ret_type->get_type(), params);
+        sr->add(name, f);
+        p->name = name;
+        p->params = params;
+        p->types = types;
+        p->ret_type = ret_type->get_type();
 
         return p;
     }

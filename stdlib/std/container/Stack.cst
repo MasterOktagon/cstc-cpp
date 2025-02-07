@@ -1,0 +1,17 @@
+
+void Stack<Tmp>::push(Tmp el){
+    data.prepend(el);
+}
+
+Tmp* Stack<Tmp>::top() @a {
+    return #data[0] @a;
+}
+
+Tmp Stack<Tmp>::pop() {
+    return data.pop();
+}
+
+size Stack<Tmp>::len(){
+    return data.len();
+}
+

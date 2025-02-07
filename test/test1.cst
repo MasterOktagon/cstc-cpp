@@ -10,9 +10,11 @@ uint8 c = 5 + i as uint8;
     int16 a = 3;
 }
 
-int16 foo(){
+int16 foo(int16 b, bool a){
+    b = b + a as int16;
     //return 0;
 }
+b = b + 1;
 
 /*
 Bla 

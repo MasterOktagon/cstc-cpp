@@ -1,0 +1,18 @@
+import list;
+
+final class Stack<Tmp> {
+    
+    List<Tmp> data;
+
+    Tmp* @a top() @a;
+    Tmp pop();
+    void push(Tmp el);
+    size len();
+}
+
+
+
+
+
+
+
