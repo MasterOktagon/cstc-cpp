@@ -20,14 +20,18 @@ namespace parser {
     
     class AST {
     public:
-        virtual std::string to_cpp(){return "";};
-    };
+        virtual std::string to_cpp(){return "";}
+        virtual std::string emit_ll(){return "";}
+        virtual std::string emit_cst(){return "";}
 
+        static AST* parse(){return new AST;}
+    };
 
     class TypeAST : public AST{
     public:
         std::string name;
-        virtual std::string to_cpp(){return match_cpp_types(name);};
+        virtual std::string to_cpp(){return match_cpp_types(name);}
+        virtual std::string emit_cst(){return name;}
 
         TypeAST(std::string n){
             name = n;

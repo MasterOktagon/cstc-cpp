@@ -101,8 +101,8 @@ void parser::error(std::string name, lexer::Token t, lexer::Token t2, std::strin
 
 std::string match_token_clamp(lexer::Token::TokenType t){
     switch (t){
-        case lexer::Token::TokenType::CLAMP_OPEN:  return "CLAMP";
-        case lexer::Token::TokenType::CLAMP_CLOSE: return "CLAMP";
+        case lexer::Token::TokenType::PT_OPEN:  return "CLAMP";
+        case lexer::Token::TokenType::PT_CLOSE: return "CLAMP";
 
         case lexer::Token::TokenType::INDEX_OPEN:  return "INDEX";
         case lexer::Token::TokenType::INDEX_CLOSE: return "INDEX";
@@ -119,13 +119,13 @@ int parser::splitStack(std::vector<lexer::Token> t, std::initializer_list<lexer:
 
     int i;
     for(i=t.size()-1; i>=0 ; i--){
-        if (t[i].type == lexer::Token::TokenType::CLAMP_CLOSE || t[i].type == lexer::Token::TokenType::INDEX_CLOSE || t[i].type == lexer::Token::TokenType::BLOCK_CLOSE) {
+        if (t[i].type == lexer::Token::TokenType::PT_CLOSE || t[i].type == lexer::Token::TokenType::INDEX_CLOSE || t[i].type == lexer::Token::TokenType::BLOCK_CLOSE) {
             s.push(t[i]);
         }
 
-        else if (t[i].type == lexer::Token::TokenType::CLAMP_OPEN){
+        else if (t[i].type == lexer::Token::TokenType::PT_OPEN){
             if(s.size() == 0) parser::error("Unclosed CLAMP", t[i], "This CLAMP was not closed" , 46);
-            if(s.top().type != lexer::Token::TokenType::CLAMP_CLOSE) parser::error("Unopened " + match_token_clamp(s.top().type), s.top(), "This " + match_token_clamp(s.top().type) + " was not opened" , 47);
+            if(s.top().type != lexer::Token::TokenType::PT_CLOSE) parser::error("Unopened " + match_token_clamp(s.top().type), s.top(), "This " + match_token_clamp(s.top().type) + " was not opened" , 47);
             s.pop();
         }
 
@@ -155,13 +155,13 @@ int parser::rsplitStack(std::vector<lexer::Token> t, std::initializer_list<lexer
 
     int i;
     for(i=0; i<t.size(); i++){
-        if (t[i].type == lexer::Token::TokenType::CLAMP_OPEN || t[i].type == lexer::Token::TokenType::INDEX_OPEN || t[i].type == lexer::Token::TokenType::BLOCK_OPEN) {
+        if (t[i].type == lexer::Token::TokenType::PT_OPEN || t[i].type == lexer::Token::TokenType::INDEX_OPEN || t[i].type == lexer::Token::TokenType::BLOCK_OPEN) {
             s.push(t[i]);
         }
 
-        else if (t[i].type == lexer::Token::TokenType::CLAMP_CLOSE){
+        else if (t[i].type == lexer::Token::TokenType::PT_CLOSE){
             if(s.size() == 0) parser::error("Unopened CLAMP", t[i], "This CLAMP was not opened" , 46);
-            if(s.top().type != lexer::Token::TokenType::CLAMP_OPEN) parser::error("Unclosed " + match_token_clamp(s.top().type), s.top(), "This " + match_token_clamp(s.top().type) + " was not closed" , 47);
+            if(s.top().type != lexer::Token::TokenType::PT_OPEN) parser::error("Unclosed " + match_token_clamp(s.top().type), s.top(), "This " + match_token_clamp(s.top().type) + " was not closed" , 47);
             s.pop();
         }
 
@@ -286,7 +286,7 @@ parser::TypeAST* parser::parse_multi_type(std::vector<lexer::Token> t, int local
         if (l == local && t[i].type == lexer::Token::TokenType::COMMA) break;
         else if (t[i].type == lexer::Token::TokenType::LESS) l++;
         else if (t[i].type == lexer::Token::TokenType::GREATER) l--;
-        else if (t[i].type == lexer::Token::TokenType::BITSHIFTR) l-=2;
+        else if (t[i].type == lexer::Token::TokenType::SHR) l-=2;
         else if (t[i].type == lexer::Token::TokenType::ID) {}
         else if (t[i].type == lexer::Token::TokenType::QM) {}
         else if (t[i].type == lexer::Token::TokenType::MUL) {}
@@ -624,8 +624,8 @@ parser::ExpressionAST* parser::parse_pow(std::vector<lexer::Token> t, int local,
 }
 
 parser::ExpressionAST* parser::parse_clamp(std::vector<lexer::Token> t, int local, symbol::Namespace* sr, std::string expected_type){
-    if (t[0].type == lexer::Token::TokenType::CLAMP_OPEN){
-        if (t[t.size()-1].type == lexer::Token::TokenType::CLAMP_CLOSE){
+    if (t[0].type == lexer::Token::TokenType::PT_OPEN){
+        if (t[t.size()-1].type == lexer::Token::TokenType::PT_CLOSE){
             #ifdef DEBUG
                 std::cout << "parse CLAMP" << std::endl;
             #endif
@@ -642,16 +642,16 @@ parser::ExpressionAST* parser::parse_clamp(std::vector<lexer::Token> t, int loca
         }
         parser::error("Unclosed Clamp", t[0], "This clamp is unclosed.", 15);
     }
-    if (t[t.size()-1].type == lexer::Token::TokenType::CLAMP_CLOSE){
+    if (t[t.size()-1].type == lexer::Token::TokenType::PT_CLOSE){
         parser::error("Unopened Clamp", t[0], "This clamp is unopened.", 16);
     }
     return nullptr;
 }
 
 parser::ExpressionAST* parser::parse_bnot(std::vector<lexer::Token> t, int local, symbol::Namespace* sr, std::string expected_type){
-    if (t[0].type == lexer::Token::TokenType::BNOT){
+    if (t[0].type == lexer::Token::TokenType::NEG){
         #ifdef DEBUG
-            std::cout << "parse BNOT" << std::endl;
+            std::cout << "parse NEG" << std::endl;
         #endif
         BNotAST* a = new BNotAST();
         if (subvector(t, 1,0,t.size()).size() == 0) parser::error("Missing Expression", t[0], "Expected expression right of '~'", 218);
@@ -666,11 +666,11 @@ parser::ExpressionAST* parser::parse_bnot(std::vector<lexer::Token> t, int local
 
 parser::ExpressionAST* parser::parse_band(std::vector<lexer::Token> t, int local, symbol::Namespace* sr, std::string expected_type){
     if (t.size() == 0){return nullptr;}
-    int i = parser::splitStack(t, {lexer::Token::TokenType::BAND}, local);
+    int i = parser::splitStack(t, {lexer::Token::TokenType::AND}, local);
     
     if (i != t.size() && i > 0){
         #ifdef DEBUG
-            std::cout << "parse BAND : " << i << "/" << t.size() << std::endl;
+            std::cout << "parse AND : " << i << "/" << t.size() << std::endl;
         #endif
         ExpressionAST* t0 = parse_math(subvector(t, 0, 1, i), local, sr, expected_type);
         if(t0 == nullptr) parser::error("Missing Expression", t[i], "Expected expression left of '&'", 327);
@@ -693,11 +693,11 @@ parser::ExpressionAST* parser::parse_band(std::vector<lexer::Token> t, int local
 
 parser::ExpressionAST* parser::parse_bor(std::vector<lexer::Token> t, int local, symbol::Namespace* sr, std::string expected_type){
     if (t.size() == 0){return nullptr;}
-    int i = parser::splitStack(t, {lexer::Token::TokenType::BOR}, local);
+    int i = parser::splitStack(t, {lexer::Token::TokenType::OR}, local);
     
     if (i != t.size() && i > 0){
         #ifdef DEBUG
-            std::cout << "parse BOR : " << i << "/" << t.size() << std::endl;
+            std::cout << "parse OR : " << i << "/" << t.size() << std::endl;
         #endif
         ExpressionAST* t0 = parse_math(subvector(t, 0, 1, i), local, sr, expected_type);
         if(t0 == nullptr) parser::error("Missing Expression", t[i], "Expected expression left of '|'", 327);
@@ -720,11 +720,11 @@ parser::ExpressionAST* parser::parse_bor(std::vector<lexer::Token> t, int local,
 
 parser::ExpressionAST* parser::parse_bxor(std::vector<lexer::Token> t, int local, symbol::Namespace* sr, std::string expected_type){
     if (t.size() == 0){return nullptr;}
-    int i = parser::splitStack(t, {lexer::Token::TokenType::BXOR}, local);
+    int i = parser::splitStack(t, {lexer::Token::TokenType::XOR}, local);
     
     if (i != t.size() && i > 0){
         #ifdef DEBUG
-            std::cout << "parse BXOR : " << i << "/" << t.size() << std::endl;
+            std::cout << "parse XOR : " << i << "/" << t.size() << std::endl;
         #endif
         ExpressionAST* t0 = parse_math(subvector(t, 0, 1, i), local, sr);
         if(t0 == nullptr) parser::error("Missing Expression", t[i], "Expected expression left of '^'", 327);
@@ -747,7 +747,7 @@ parser::ExpressionAST* parser::parse_bxor(std::vector<lexer::Token> t, int local
 
 parser::ExpressionAST* parser::parse_lor(std::vector<lexer::Token> t, int local, symbol::Namespace* sr, std::string expected_type){
     if (t.size() == 0){return nullptr;}
-    int i = parser::splitStack(t, {lexer::Token::TokenType::OR}, local);
+    int i = parser::splitStack(t, {lexer::Token::TokenType::LOR}, local);
     
     if (i != t.size() && i > 0){
         #ifdef DEBUG
@@ -762,7 +762,7 @@ parser::ExpressionAST* parser::parse_lor(std::vector<lexer::Token> t, int local,
         if(a->right == nullptr) parser::error("Missing Expression", t[i], "Expected expression right of '||'", 328);
         
         if(!type_eq(a->left->type, "bool") || !type_eq(a->right->type, "bool")) parser::error("Mismatching Types", t[i],
-            "You may only do OR on two bools (found '" + a->left->type + "' and '" + a->right->type + "')", 11);
+            "You may only do LOR on two bools (found '" + a->left->type + "' and '" + a->right->type + "')", 11);
             
         a->type = "bool";
         
@@ -774,7 +774,7 @@ parser::ExpressionAST* parser::parse_lor(std::vector<lexer::Token> t, int local,
 
 parser::ExpressionAST* parser::parse_land(std::vector<lexer::Token> t, int local, symbol::Namespace* sr, std::string expected_type){
     if (t.size() == 0){return nullptr;}
-    int i = parser::splitStack(t, {lexer::Token::TokenType::AND}, local);
+    int i = parser::splitStack(t, {lexer::Token::TokenType::LAND}, local);
     
     if (i != t.size() && i > 0){
         #ifdef DEBUG
@@ -934,8 +934,8 @@ parser::ExpressionAST* parser::parse_func_call(std::vector<lexer::Token> t, int 
             std::cout << "Func Name: " << name << std::endl;
         #endif
         auto t2 = t; t = subvector(t, x,1,t.size());
-        if(t[0].type == lexer::Token::TokenType::CLAMP_OPEN){
-            if(t[t.size()-1].type == lexer::Token::TokenType::CLAMP_CLOSE){
+        if(t[0].type == lexer::Token::TokenType::PT_OPEN){
+            if(t[t.size()-1].type == lexer::Token::TokenType::PT_CLOSE){
                 if(t.size()==2) return new parser::FuncCallAST(name, std::vector<parser::ExpressionAST*>({}));
 
                 std::vector<parser::ExpressionAST*> params = {};
@@ -1072,8 +1072,8 @@ parser::AST* parser::parse_func_def(std::vector<lexer::Token> t, int local, symb
         if(t2.size()==0) parser::error("Clamp expected", t[1], "Expected a clamp after funtion named", 3434);
 
         FuncDefAST* p = new parser::FuncDefAST();
-        i = parser::splitStack(t, {lexer::Token::TokenType::CLAMP_OPEN}, local);
-        j = parser::rsplitStack(t, {lexer::Token::TokenType::CLAMP_CLOSE}, local);
+        i = parser::splitStack(t, {lexer::Token::TokenType::PT_OPEN}, local);
+        j = parser::rsplitStack(t, {lexer::Token::TokenType::PT_CLOSE}, local);
         auto t3 = subvector(t, i+1,1,j);
         int k = parser::rsplitStack(t3, {lexer::Token::TokenType::COMMA}, local+1);
         int lastk = 0;

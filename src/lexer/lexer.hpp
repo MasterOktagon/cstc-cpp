@@ -1,143 +1,143 @@
 #pragma once
-
-#include <exception>
 #include <string>
 #include <vector>
 
-namespace lexer {
-    class LexerError : public std::exception {
-        std::string msg = "";
-        public:
-            LexerError(std::string msg);
-            const char* what();
-    };
+#define PRETTY_SIZE 100
 
+namespace lexer {
+/*
+Holds functions adding to the tokenizing features
+*/
 
     class Token {
+        /*
+        represents a token
+        */
+
         public:
-            enum TokenType {
-                NONE,
-                ID,
-                END_CMD,
-                BLOCK_OPEN,
-                BLOCK_CLOSE,
-                CLAMP_OPEN,
-                CLAMP_CLOSE,
-                INDEX_OPEN,
-                INDEX_CLOSE,
-                
-                SET,
-                ADD,
-                SUB,
-                MUL,
-                DIV,
-                MOD,
-                
-                BAND,
-                BOR,
-                BXOR,
-                BNOT,
-                
-                INCREASE,
-                DECREASE,
-                POW,
-                BITSHIFTL,
-                BITSHIFTR,
-                
-                ADDSET,
-                SUBSET,
-                MULSET,
-                DIVSET,
-                MODSET,
-                BANDSET,
-                BORSET,
-                BXORSET,
-                BNOTSET,
-                
-                IN,
-                DOT,
-                SUBNS,
-                QM,
-                COMMA,
-                
-                EQUALS,
-                GREATER,
-                LESS,
-                GEQ,
-                LEQ,
-                NEQ,
-                
-                NOT,
-                OR,
-                AND,
-                ADDR,
-                
-                AS,
-                IF,
-                ELSE,
-                FOR,
-                WHILE,
-                RETURN,
-                CONTINUE,
-                BREAK,
-                NAMESPACE,
-                MODULE,
-                NOIMPL,
-                CLASS,
-                STRUCT,
-                ENUM,
-                FINAL,
-                C,
-                GOTO,
-                PUBLIC,
-                PRIVATE,
-                PROTECTED,
-                FRIEND,
-                READONLY,
-                CONST,
-                STATIC,
-                IMPLEMENTS,
-                IMPORT,
-                THROW,
-                CATCH,
-                TRY,
-                NEW,
-                DELETE,
-                
-                STRING,
-                CHAR,
-                INT,
-                FLOAT,
-                HEX,
-                BINARY,
-                BOOL,
-                
-                COMMENT,
-                ML_COMMENT_OPEN,
-                ML_COMMENT_CLOSE,
-                EF
-                
-            };
-            
+        enum TokenType {
+            /*
+            Enum of all available Token types
+            */
+
+                //  SPECIAL   //
+            NONE     ,        // undefined token
+            ID       ,        // a name
+            EF       ,        // File end
+            END_CMD  ,        // ;
+
+                //  LITERALS  //
+            INT      ,        // int literal
+            HEX      ,        // int literal in hexadecimal
+            BINARY   ,        // int literal in binary
+            BOOL     ,        // bool literal
+            STRING   ,        // String literal
+            CHAR     ,        // char literal
+            FLOAT    ,        // float literal
+            NULV     ,        // "null"
+
+                //    MATH    //
+            SET      ,        // =
+            ADD      ,        // +
+            SUB      ,        // -
+            MUL      ,        // *
+            DIV      ,        // /
+            MOD      ,        // %
+            POW      ,        // **
+            INC      ,        // ++
+            DEC      ,        // --
+
+            NEG      ,        // ~
+            AND      ,        // &
+            OR       ,        // |
+            XOR      ,        // ^
+            SHL      ,        // <<
+            SHR      ,        // >>
+            LSHR     ,        // !>
+
+                //  LOGICAL   //
+            LAND     ,        // &&
+            LOR      ,        // ||
+            NOT      ,        // !
+
+                // COMPARISON //
+            EQ       ,        // ==
+            NEQ      ,        // !=
+            LESS     ,        // <
+            GREATER  ,        // >
+            GEQ      ,        // >=
+            LEQ      ,        // <=
+
+                //    FLOW    //
+            QM       ,        // ?
+            IN       ,        // :
+            UNPACK   ,        // <-
+            ADDR     ,        // #
+            LIFETIME ,        // @
+            SUBNS    ,        // ::
+            ACCESS   ,        // .
+            COMMA    ,        // ,
+
+                // PARANTHESIS //
+            PT_OPEN   ,       // (
+            PT_CLOSE  ,       // )
+            BLOCK_OPEN ,      // {
+            BLOCK_CLOSE,      // }
+            INDEX_OPEN ,      // [
+            INDEX_CLOSE,      // ]
+
+                //  KEYWORDS  //
+            IF        ,         
+            ELSE      ,         
+            FOR       ,   
+            WHILE     ,        
+            DO        ,    
+            THROW     ,      
+            CATCH     ,
+            TRY       ,
+            BREAK     ,
+            CONTINUE  ,
+            NOIMPL    ,
+            RETURN    ,
+            AS        ,
+
+            IMPORT    ,
+            IMPLEMENTS,
+            CLASS     ,
+            ENUM      ,
+            STRUCT    ,
+            VIRTUAL   ,
+            INTERFACE ,
+            FRIEND    ,
+            PUBIC     ,
+            PROTECTED ,
+            PRIVATE   ,
+            GUARDED   ,
+            STATIC    ,
+            PUBLIC    ,
+            FINAL     ,
+            CONST     ,
+            NAMESPACE ,
+            NEW
+        };
+
+        
             TokenType type;
             std::string value;
-            int line, column;
-            std::string line_content;
-            std::string filename;
-            
-            Token(TokenType type, std::string value, std::string lc, int line, int column, std::string filename);
-        
+
+            unsigned int column = 0;
+            unsigned int line = 0;
+
+            std::string line_content = "";
+            std::string filename = "";
+
+            Token(TokenType type, std::string value, std::string lc, unsigned int line, unsigned int column, std::string filename);
+
     };
-    
+
     extern std::vector<Token> tokenize(std::string text, std::string filename);
-
+    extern void error(std::string name, lexer::Token t, std::string msg, int code);
+    extern void warn(std::string name, lexer::Token t, std::string msg, int code);
+    extern void warn(std::string name, int l, int c, std::string lc, std::string file, std::string msg, int code);
 }
-
-
-
-
-
-
-
-
 
