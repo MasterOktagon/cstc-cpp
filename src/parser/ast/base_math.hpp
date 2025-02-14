@@ -1,5 +1,8 @@
 #pragma once
 #include "ast.hpp"
+#include <vector>
+#include "../../lexer/lexer.hpp"
+#include "../symboltable.hpp"
 
 class AddAST : public AST {
     AST* left;
@@ -24,6 +27,8 @@ class AddAST : public AST {
     /*
         Emit C* code
     */
+    static AST* parse(std::vector<lexer::Token>, int local, symbol::Namespace* sr, std::string expected_type="@unknown");
+    // ALSO PARSES SUBAST
 };
 
 class SubAST : public AST {

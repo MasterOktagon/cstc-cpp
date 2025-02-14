@@ -4,6 +4,7 @@
 class AST {
 
     public:
+    AST(){}
     virtual ~AST(){}
     virtual std::string emit_ll(int locc=0){return "";}
     /*

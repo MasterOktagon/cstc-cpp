@@ -132,6 +132,7 @@ Holds functions adding to the tokenizing features
             std::string filename = "";
 
             Token(TokenType type, std::string value, std::string lc, unsigned int line, unsigned int column, std::string filename);
+            Token(){};
 
     };
 

@@ -21,6 +21,21 @@
 },
 {
   "directory": "/home/oskar/Programmierprojekte/C*/cstc-cpp",
+  "command": "/usr/bin/c++   -W -Wall -Wextra -o CMakeFiles/cstc.dir/src/parser/ast/ast.cpp.o -c \"/home/oskar/Programmierprojekte/C*/cstc-cpp/src/parser/ast/ast.cpp\"",
+  "file": "/home/oskar/Programmierprojekte/C*/cstc-cpp/src/parser/ast/ast.cpp"
+},
+{
+  "directory": "/home/oskar/Programmierprojekte/C*/cstc-cpp",
+  "command": "/usr/bin/c++   -W -Wall -Wextra -o CMakeFiles/cstc.dir/src/parser/ast/base_math.cpp.o -c \"/home/oskar/Programmierprojekte/C*/cstc-cpp/src/parser/ast/base_math.cpp\"",
+  "file": "/home/oskar/Programmierprojekte/C*/cstc-cpp/src/parser/ast/base_math.cpp"
+},
+{
+  "directory": "/home/oskar/Programmierprojekte/C*/cstc-cpp",
+  "command": "/usr/bin/c++   -W -Wall -Wextra -o CMakeFiles/cstc.dir/src/parser/ast/literal.cpp.o -c \"/home/oskar/Programmierprojekte/C*/cstc-cpp/src/parser/ast/literal.cpp\"",
+  "file": "/home/oskar/Programmierprojekte/C*/cstc-cpp/src/parser/ast/literal.cpp"
+},
+{
+  "directory": "/home/oskar/Programmierprojekte/C*/cstc-cpp",
   "command": "/usr/bin/c++   -W -Wall -Wextra -o CMakeFiles/cstc.dir/src/parser/parser.cpp.o -c \"/home/oskar/Programmierprojekte/C*/cstc-cpp/src/parser/parser.cpp\"",
   "file": "/home/oskar/Programmierprojekte/C*/cstc-cpp/src/parser/parser.cpp"
 },

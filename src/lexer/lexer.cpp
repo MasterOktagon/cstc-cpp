@@ -206,7 +206,7 @@ std::string getline_from_str(std::string text, unsigned int line){
 std::vector<lexer::Token> lexer::tokenize(std::string text, std::string filename){
     std::vector<Token> tokens = {};
     
-    unsigned i = 0, c = 0, l = 1;
+    unsigned i = 0, c = 0, l = 2;
     std::string buffer = "";
     char next = ' ';
     bool in_string = false;
@@ -222,7 +222,7 @@ std::vector<lexer::Token> lexer::tokenize(std::string text, std::string filename
             last_linetoolong = l;
         }
         if(text[i] == '\t') c += 3;
-        if (text[i] == '\n'){c = 1; l++;}
+        //if (text[i] == '\n'){c = 1; l++;}
         if (in_inline_comment && text[i] != '\n'){
             i++;
             continue;
@@ -233,7 +233,7 @@ std::vector<lexer::Token> lexer::tokenize(std::string text, std::string filename
             in_inline_comment = true;
             Token::TokenType type = matchType(buffer);
             if (buffer != ""){
-                tokens.push_back(Token(type, buffer, getline_from_str(text, l-bool(text[i]=='\n')), l, c-buffer.size(), filename));
+                tokens.push_back(Token(type, buffer, getline_from_str(text, l-bool(text[i]=='\n')), l, c-buffer.size()+1, filename));
                 buffer = "";
             }
             continue;

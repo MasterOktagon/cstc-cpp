@@ -1,29 +1,4 @@
 
-import test;
-
-int16 i;
-i = 5; 
-uint8 c = 5 + i as uint8;
-
-{
-    i = 5;
-    int16 a = 3;
-}
-
-print(test::b);
-
-int16 foo(int16 b, bool a){
-    b = b + a as int16;
-    //return 0;
-}
-b = b + 1;
-
-/*
-Bla 
-/**/
-*/
-
-
-print(c);
+-3 + -7
 
 

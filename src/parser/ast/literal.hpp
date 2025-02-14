@@ -2,6 +2,7 @@
 #include <string>
 #include "../symboltable.hpp"
 #include "../../lexer/lexer.hpp"
+#include "../parser.hpp"
 
 #include "ast.hpp"
 
@@ -15,10 +16,11 @@ class IntLiteralAST : public LiteralAST {
 
     std::string value = "0"; // Integer value
     int bits = 32;           // Integer Bit size
+    bool tsigned = true;
 
     public:
 
-    IntLiteralAST(int bits, std::string value);
+    IntLiteralAST(int bits, std::string value, bool tsigned=true);
     virtual ~IntLiteralAST(){}
     std::string get_type(){return "@int";}
     std::string get_ll_type(){return std::string("i") + std::to_string(bits);}
@@ -61,6 +63,8 @@ class BoolLiteralAST : public LiteralAST {
     /*
         Emit C* code
     */
+
+    static BoolLiteralAST* parse(std::vector<lexer::Token>, int local, symbol::Namespace* sr, std::string expected_type="@unknown");
 };
 
 class FloatLiteralAST : public LiteralAST {
@@ -87,4 +91,6 @@ class FloatLiteralAST : public LiteralAST {
     /*
         Emit C* code
     */
+
+    static FloatLiteralAST* parse(std::vector<lexer::Token>, int local, symbol::Namespace* sr, std::string expected_type="@unknown");
 };

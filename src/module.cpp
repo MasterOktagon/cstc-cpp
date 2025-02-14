@@ -8,10 +8,13 @@
 #include <cstdint>
 #include <algorithm>
 #include "lexer/lexer.hpp"
-#include "parser/parser.hpp"
+#include "parser/ast/ast.hpp"
+//#include "parser/parser.hpp"
+#include "parser/ast/literal.hpp"
+#include "parser/ast/base_math.hpp"
 #include "parser/symboltable.hpp"
 
-//#define DEBUG
+#define DEBUG
 #define STD_PATH "/home/oskar/Programmierprojekte/C*/cstc-cpp/stdlib/"
 
 std::map<std::string, Module*> Module::unknown_modules = {};
@@ -223,10 +226,10 @@ bool is_less(Module* a, Module* b){
 
 void Module::parse(){
     tokens.pop_back();
-    root = parser::parse(tokens,0, this);
+    root = AddAST::parse(tokens, 0, this, "int32");
 
     if(root != nullptr){
-        std::cout << root->to_cpp() << std::endl;
+        std::cout << root->emit_ll() << std::endl;
     }
     
 }

@@ -1,6 +1,12 @@
 #include <string>
 #include "base_math.hpp"
+#include "ast.hpp"
 #include "literal.hpp"
+#include <vector>
+#include "../../lexer/lexer.hpp"
+#include "../symboltable.hpp"
+#include <iostream>
+
 
 // AddAST
 
@@ -40,6 +46,37 @@ std::string AddAST::emit_ll(int locc){
 
 std::string AddAST::emit_cst(){
     return std::string("(") + left->emit_cst() + " + " + right->emit_cst() + ")";
+}
+
+AST* AddAST::parse(std::vector<lexer::Token> tokens, int local, symbol::Namespace* sr, std::string expected_type){
+    if (tokens.size() < 1) return nullptr;
+    lexer::Token first; bool first_is_sub = false;
+    if (tokens[0].type == lexer::Token::TokenType::SUB){
+        first = tokens[0]; first_is_sub = true;
+        tokens = parser::subvector(tokens, 1,1,tokens.size());
+    }
+    int split = parser::rsplitStack(tokens, {lexer::Token::TokenType::ADD, lexer::Token::TokenType::SUB}, local);
+    if (first_is_sub) tokens.insert(tokens.begin(), first);
+    if (tokens.size() > 2 && split != 0 && split != tokens.size()){
+        #ifdef DEBUG
+            std::cout << "AddAST::parse:\tfirst_is_sub:\t" << first_is_sub << std::endl;
+        #endif
+        lexer::Token op = tokens[split+first_is_sub];
+        AST* left = IntLiteralAST::parse(parser::subvector(tokens, 0,1,split + first_is_sub), local, sr, expected_type);
+        if (left == nullptr){
+            parser::error("Expression expected", tokens[0], tokens[split+first_is_sub-1], std::string("Expected espression of type \e[1m") + expected_type + "\e[0m", 111);
+            return new AST();
+        }
+        AST* right = IntLiteralAST::parse(parser::subvector(tokens, split + first_is_sub+1,1,tokens.size()), local, sr, expected_type);
+        if (right == nullptr){
+            parser::error("Expression expected", tokens[split+first_is_sub], tokens[tokens.size()-1], std::string("Expected espression of type \e[1m") + expected_type + "\e[0m", 111);
+            delete left;
+            return new AST();
+        }
+        return new AddAST(left, right);
+    }
+
+    return nullptr;
 }
 
 // SubAST

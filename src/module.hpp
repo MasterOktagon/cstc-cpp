@@ -8,7 +8,8 @@
 #include <list>
 #include "lexer/lexer.hpp"
 #include "parser/symboltable.hpp"
-#include "parser/parser.hpp"
+#include "parser/ast/ast.hpp"
+//#include "parser/parser.hpp"
 
 class Module : public symbol::Namespace {
 
@@ -22,7 +23,7 @@ class Module : public symbol::Namespace {
         static std::map<std::string, Module*> unknown_modules;
         static std::list<Module*> load_order;
 
-        parser::AST* root;
+        AST* root;
 
         std::vector<std::string> dependencies = {};
 

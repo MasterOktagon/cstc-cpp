@@ -5,6 +5,7 @@
 #include <filesystem>
 
 #include "module.hpp"
+#include "parser/parser.hpp"
 
 //#define DEBUG
 
@@ -81,9 +82,13 @@ int main(int argc, const char** argv){
         std::cout << m->module_name << std::endl;
         m->parse();
     }
-
-    std::cout << "Complete!" << std::endl;
-
+    
+    if (parser::errc > 0){
+        
+    }
+    else{
+        std::cout << "Complete!" << std::endl;
+    }
     return 0;
 }
 
