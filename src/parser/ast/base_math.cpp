@@ -73,7 +73,8 @@ AST* AddAST::parse(std::vector<lexer::Token> tokens, int local, symbol::Namespac
             delete left;
             return new AST();
         }
-        return new AddAST(left, right);
+        if (op.type == lexer::Token::TokenType::ADD) return new AddAST(left, right);
+        else if (op.type == lexer::Token::TokenType::SUB) return new SubAST(left, right);
     }
 
     return nullptr;
