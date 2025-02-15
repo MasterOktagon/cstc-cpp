@@ -3,3 +3,4 @@ CMake*
 .cache/
 .vscode/
 bin/
+!CMakeLists.txt
