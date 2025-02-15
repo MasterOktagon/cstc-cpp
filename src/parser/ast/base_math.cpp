@@ -163,11 +163,11 @@ std::string MulAST::emit_cst(){
 AST* MulAST::parse(std::vector<lexer::Token> tokens, int local, symbol::Namespace* sr, std::string expected_type){
     if (tokens.size() < 1) return nullptr;
     int split = parser::rsplitStack(tokens, {lexer::Token::TokenType::MUL, lexer::Token::TokenType::DIV, lexer::Token::TokenType::MOD}, local);
-    if (first_is_sub) tokens.insert(tokens.begin(), first);
     if (tokens.size() > 2 && split != 0 && split != tokens.size()){
         #ifdef DEBUG
             std::cout << "MulAST::parse:\tsplit:\t" << split << std::endl;
         #endif
+        lexer::Token op = tokens[split];
         AST* left = IntLiteralAST::parse(parser::subvector(tokens, 0,1,split), local, sr, expected_type);
         if (left == nullptr){
             parser::error("Expression expected", tokens[0], tokens[split-1], std::string("Expected espression of type \e[1m") + expected_type + "\e[0m", 111);
