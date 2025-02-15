@@ -79,6 +79,7 @@ class MulAST : public AST {
     /*
         Emit C* code
     */
+    static AST* parse(std::vector<lexer::Token>, int local, symbol::Namespace* sr, std::string expected_type="@unknown");
 };
 
 class DivAST : public AST {

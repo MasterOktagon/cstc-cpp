@@ -179,9 +179,9 @@ AST* MulAST::parse(std::vector<lexer::Token> tokens, int local, symbol::Namespac
             delete left;
             return new AST();
         }
-        if (op.type == lexer::Token::TokenType::ADD) return new AddAST(left, right);
-        else if (op.type == lexer::Token::TokenType::SUB) return new SubAST(left, right);
-        else if (op.type == lexer::Token::TokenType::SUB) return new SubAST(left, right);
+        if (op.type == lexer::Token::TokenType::MUL) return new MulAST(left, right);
+        else if (op.type == lexer::Token::TokenType::DIV) return new DivAST(left, right);
+        else if (op.type == lexer::Token::TokenType::MOD) return new ModAST(left, right);
     }
 
     return nullptr;
