@@ -74,7 +74,7 @@ int main(int argc, const char** argv){
     if (flags.count("--list-modules") > 0){
         std::cout << "\e[1;36mINFO:\e[0m Modules loaded:" << std::endl;
         for (Module* mod : Module::load_order){
-            std::cout << "\t\e[1m" << mod->module_name << "\e[0m" << std::endl;
+            std::cout << "\t\e[1m" << mod->module_name << "\e[0m" << (mod->is_header()? " [from Header] " : "") << std::endl;
         } 
     }
 
