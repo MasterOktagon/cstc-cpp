@@ -133,9 +133,11 @@ AST* CharLiteralAST::parse(std::vector<lexer::Token> tokens, int local, symbol::
             parser::error("Empty char", tokens[0], "This char value is empty. This is not supported. Did you mean '\\u0000' ?", 578);
             return new AST();
         }
-        std::regex r ("'\\u[0-9a-fA-F][0-9a-fA-F][0-9a-fA-F][0-9a-fA-F]'");
-        if (std::regex_match(tokens[0].value, r) || tokens[0].value.size() == 3){
-            return new CharLiteralAST(tokens[0].value.substr(1,tokens[0].value.size()-1));
+        std::regex r ("'\\\\u[0-9a-fA-F][0-9a-fA-F][0-9a-fA-F][0-9a-fA-F]'");
+        std::regex r2 ("'\\\\(n|a|r|t|f|v|\\\\|'|\"|)'");
+        if (std::regex_match(tokens[0].value, r) || std::regex_match(tokens[0].value, r2) || tokens[0].value.size() == 3){
+            //std::cout<<"skdskdl"<<std::endl;
+            return new CharLiteralAST(tokens[0].value);
         }
         parser::error("Invalid char", tokens[0], "This char value is not supported. Chars are meant to hold only one character. Did you mean to use \"Double quotes\" ?", 579);
         return new AST();
@@ -143,3 +145,20 @@ AST* CharLiteralAST::parse(std::vector<lexer::Token> tokens, int local, symbol::
     return nullptr;
 }
 
+std::string CharLiteralAST::get_value(){
+    if (this->value == "'\\n'") return "\"\\00\\0A\"";
+    if (this->value == "'\\t'") return "\"\\00\\09\"";
+    if (this->value == "'\\v'") return "\"\\00\\0B\"";
+    if (this->value == "'\\f'") return "\"\\00\\0C\"";
+    if (this->value == "'\\r'") return "\"\\00\\0D\"";
+    if (this->value == "'\\a'") return "\"\\00\\07\"";
+    if (this->value == "'\\\"'") return "\"\\00\\22\"";
+    if (this->value == "'\\\\'") return "\"\\00\\5C\"";
+    if (this->value == "'\\\''") return "\"\\00\\27\"";
+
+    if (this->value[1] == '\\' && this->value.size() == 8){
+        return std::string("\"\\") + this->value.substr(3, 2) + "\\" + this->value.substr(5, 2) + "\"";
+    }
+
+    return std::string("\"") + this->value[1] + "\"";
+}

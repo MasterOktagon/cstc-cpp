@@ -105,9 +105,9 @@ class CharLiteralAST : public LiteralAST {
     virtual ~CharLiteralAST(){}
     std::string get_type(){return "char";}
     std::string get_ll_type(){return "i16";};
-    std::string get_value(){return std::string("\"") + value + "\"";}
+    std::string get_value();
 
-    std::string emit_ll(int locc=0);
+    std::string emit_ll(int locc=0){return get_value();}
     /*
         Emit llvm IR code in human-readable form
 

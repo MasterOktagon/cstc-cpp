@@ -218,8 +218,8 @@ std::vector<lexer::Token> lexer::tokenize(std::string text, std::string filename
     int last_linetoolong = 0;
     
     while ((size_t) i < text.size()){
+        if(text[i] == '\n'){c=0; l++;}
         c++;
-        if(text[i] == '\n'){c=1; l++;}
         if (c > PRETTY_SIZE && text[i] != ' ' && text[i] != '\t' && text[i] != '\n' && last_linetoolong != l){
             warn("Line too long", l, 101, getline_from_str(text, l-bool(text[i]=='\n')), filename, "It will become hard to read if you do long lines", 109);
             last_linetoolong = l;
@@ -266,9 +266,19 @@ std::vector<lexer::Token> lexer::tokenize(std::string text, std::string filename
         if(ml_comment_level <= 0){
             if (text[i] == '\"' && text[i-1] != '\\' && !in_char){
                 in_string = !in_string;
+                if (!in_string){
+                    tokens.push_back(Token(Token::TokenType::STRING, buffer + text[i], getline_from_str(text, l-bool(text[i]=='\n')), l, c-buffer.size(), filename));
+                    buffer = "";
+                    i++;
+                }
             }
             if (text[i] == '\'' && text[i-1] != '\\' && !in_string){
                 in_char = !in_char;
+                if (!in_char){
+                    tokens.push_back(Token(Token::TokenType::CHAR, buffer + text[i], getline_from_str(text, l-bool(text[i]=='\n')), l, c-buffer.size(), filename));
+                    buffer = "";
+                    i++;
+                }
             }
             if (in_string || in_char){
                 buffer += text[i];

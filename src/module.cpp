@@ -226,7 +226,7 @@ bool is_less(Module* a, Module* b){
 
 void Module::parse(){
     tokens.pop_back();
-    root = MulAST::parse(tokens, 0, this, "int32");
+    root = math::parse(tokens, 0, this, "int32");
 
     if(root != nullptr){
         std::cout << root->emit_ll() << std::endl;
