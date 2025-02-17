@@ -27,6 +27,7 @@ void parser::error(std::string name, lexer::Token t, std::string msg, int code){
 
     std::cerr << pb << std::endl << std::endl;
     errc++;
+    if (one_error) std::exit(1);
 }
 
 void parser::error(std::string name, lexer::Token t, lexer::Token t2, std::string msg, int code){
@@ -82,6 +83,7 @@ void parser::error(std::string name, lexer::Token t, lexer::Token t2, std::strin
         std::cerr << pb << std::endl << std::endl;
     }
     errc++;
+    if (one_error) std::exit(1);
 }
 
 void parser::warn(std::string name, lexer::Token t, std::string msg, int code){

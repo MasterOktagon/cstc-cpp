@@ -30,6 +30,7 @@ void lexer::error(std::string name, lexer::Token t, std::string msg, int code){
     pb += "\e[0m";
 
     std::cerr << pb << std::endl << std::endl;
+    if (one_error) std::exit(1);
 }
 
 void lexer::warn(std::string name, lexer::Token t, std::string msg, int code){

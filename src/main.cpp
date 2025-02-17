@@ -63,6 +63,10 @@ int main(int argc, const char** argv){
         std::cerr << "\e[1;31mERROR:\e[0m No main file specified!" << std::endl;
         return 43;
     }
+    if (flags.count("--one-error") > 0){
+        parser::one_error = true;
+    }
+
     Module prog_root = Module(main_file, true);
     Module::load_order.push_back(&prog_root);
 
