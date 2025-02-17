@@ -6,17 +6,23 @@
 #include "../lexer/lexer.hpp"
 #include <cmath>
 #include <regex>
+#include "ast/ast.hpp"
+#include "symboltable.hpp"
+
 
 unsigned int parser::errc = 0;
+bool parser::one_error = false;
+
+#define DEBUG
 
 void parser::error(std::string name, lexer::Token t, std::string msg, int code){
-    std::cerr << std::string("\e[1;31mERROR: ") + name + "\e[0m at \e[1m" + t.filename + ":" + std::to_string(t.line) + ":" + std::to_string(t.column-1) + "\e[0m [E "+ std::to_string(code) +"]" + "\n" + msg << std::endl;
+    std::cerr << std::string("\e[1;31mERROR: ") + name + "\e[0m at \e[1m" + t.filename + ":" + std::to_string(t.line) + ":" + std::to_string(t.column) + "\e[0m [E "+ std::to_string(code) +"]" + "\n" + msg << std::endl;
     std::cerr << std::endl << " " << std::to_string(t.line) << " |\t" << t.line_content << std::endl;
     std::string pb = " ";
     
     for (unsigned int i=0; i<std::to_string(t.line).size(); i++) pb += " ";
     pb += " |\t";
-    for (unsigned int i=0; i<t.column-2; i++){
+    for (unsigned int i=0; i<t.column; i++){
         pb += " ";
     }
     pb += "\e[31m^";
@@ -32,13 +38,13 @@ void parser::error(std::string name, lexer::Token t, std::string msg, int code){
 
 void parser::error(std::string name, lexer::Token t, lexer::Token t2, std::string msg, int code){
     if (t.line == t2.line){
-        std::cerr << std::string("\e[1;31mERROR: ") + name + "\e[0m at \e[1m" + t.filename + ":" + std::to_string(t.line) + ":" + std::to_string(t.column-1) + "\e[0m [E "+ std::to_string(code) +"]" + "\n" + msg << std::endl;
+        std::cerr << std::string("\e[1;31mERROR: ") + name + "\e[0m at \e[1m" + t.filename + ":" + std::to_string(t.line) + ":" + std::to_string(t.column) + "\e[0m [E "+ std::to_string(code) +"]" + "\n" + msg << std::endl;
         std::cerr << std::endl << " " << std::to_string(t.line) << " |\t" << t.line_content << std::endl;
         std::string pb = " ";
         
         for (int i=0; i<std::to_string(t.line).size(); i++) pb += " ";
         pb += " |\t";
-        for (int i=0; i<t.column-2; i++){
+        for (int i=0; i<t.column; i++){
             pb += " ";
         }
         pb += "\e[31m^";
@@ -50,13 +56,13 @@ void parser::error(std::string name, lexer::Token t, lexer::Token t2, std::strin
         std::cerr << pb << std::endl << std::endl;
     }
     else {
-        std::cerr << std::string("\e[1;31mERROR: ") + name + "\e[0m at \e[1m" + t.filename + ":" + std::to_string(t.line) + ":" + std::to_string(t.column-1) + " - " + std::to_string(t2.line) + ":" + std::to_string(t2.column-1) + "\e[0m [E "+ std::to_string(code) +"]" + "\n" + msg << std::endl;
+        std::cerr << std::string("\e[1;31mERROR: ") + name + "\e[0m at \e[1m" + t.filename + ":" + std::to_string(t.line) + ":" + std::to_string(t.column) + " - " + std::to_string(t2.line) + ":" + std::to_string(t2.column-1) + "\e[0m [E "+ std::to_string(code) +"]" + "\n" + msg << std::endl;
         std::cerr << std::endl << " " << std::to_string(t.line) << " |\t" << t.line_content << std::endl;
         std::string pb = " ";
 
         for (int i=0; i<std::to_string(t.line).size(); i++) pb += " ";
         pb += " |\t";
-        for (unsigned int i=0; i<t.column-2; i++){
+        for (unsigned int i=0; i<t.column; i++){
             pb += " ";
         }
         pb += "\e[31m^";
@@ -254,4 +260,18 @@ int parser::rsplitStack(std::vector<lexer::Token> t, std::initializer_list<lexer
         s.pop();
     }
     return i;
+}
+
+AST* parser::parseOneOf(std::vector<lexer::Token> tokens, std::vector<fsignal<AST*, std::vector<lexer::Token>, int, symbol::Namespace*, std::string>> functions, int local, symbol::Namespace* sr, std::string expected_type){
+    for (auto fn : functions){
+        AST* r = fn(tokens, local, sr, expected_type);
+        if (r != nullptr){
+            #ifdef DEBUG
+                std::cout << "parse_one_of: " << r->emit_cst()  << std::endl;
+            #endif
+            return r;
+            break;
+        }
+    }
+    return nullptr;
 }

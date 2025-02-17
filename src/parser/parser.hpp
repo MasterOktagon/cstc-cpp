@@ -2,9 +2,15 @@
 #include <vector>
 #include <string>
 #include "../lexer/lexer.hpp"
+#include "ast/ast.hpp"
+#include "symboltable.hpp"
+
+template <typename T, typename ... K>
+using fsignal = T (*) (K ... );
 
 namespace parser {
     extern unsigned int errc;
+    extern bool one_error;
 
     void error(std::string name, lexer::Token pos, std::string msg, int code);
     void error(std::string name, lexer::Token from, lexer::Token to, std::string msg, int code);
@@ -13,6 +19,7 @@ namespace parser {
 
     extern int splitStack(std::vector<lexer::Token> tokens, std::initializer_list<lexer::Token::TokenType>, int local);
     extern int rsplitStack(std::vector<lexer::Token> tokens, std::initializer_list<lexer::Token::TokenType>, int local);
+    extern AST* parseOneOf(std::vector<lexer::Token> tokens, std::vector<fsignal<AST*, std::vector<lexer::Token>, int, symbol::Namespace*, std::string>> functions, int local, symbol::Namespace* sr, std::string expected_type);
 
     template <typename T>
     std::vector<T> subvector(std::vector<T> v, int start, int step, int stop){

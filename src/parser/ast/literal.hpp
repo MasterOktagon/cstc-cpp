@@ -37,7 +37,7 @@ class IntLiteralAST : public LiteralAST {
     /*
         Emit C* code
     */
-    static IntLiteralAST* parse(std::vector<lexer::Token>, int local, symbol::Namespace* sr, std::string expected_type="@unknown");
+    static AST* parse(std::vector<lexer::Token>, int local, symbol::Namespace* sr, std::string expected_type="@unknown");
 };
 
 class BoolLiteralAST : public LiteralAST {
@@ -64,7 +64,7 @@ class BoolLiteralAST : public LiteralAST {
         Emit C* code
     */
 
-    static BoolLiteralAST* parse(std::vector<lexer::Token>, int local, symbol::Namespace* sr, std::string expected_type="@unknown");
+    static AST* parse(std::vector<lexer::Token>, int local, symbol::Namespace* sr, std::string expected_type="@unknown");
 };
 
 class FloatLiteralAST : public LiteralAST {
@@ -92,5 +92,32 @@ class FloatLiteralAST : public LiteralAST {
         Emit C* code
     */
 
-    static FloatLiteralAST* parse(std::vector<lexer::Token>, int local, symbol::Namespace* sr, std::string expected_type="@unknown");
+    static AST* parse(std::vector<lexer::Token>, int local, symbol::Namespace* sr, std::string expected_type="@unknown");
+};
+
+class CharLiteralAST : public LiteralAST {
+
+    std::string value = "a";    // Float value
+
+    public:
+
+    CharLiteralAST(std::string value);
+    virtual ~CharLiteralAST(){}
+    std::string get_type(){return "char";}
+    std::string get_ll_type(){return "i16";};
+    std::string get_value(){return std::string("\"") + value + "\"";}
+
+    std::string emit_ll(int locc=0);
+    /*
+        Emit llvm IR code in human-readable form
+
+        [param locc] local variable name counter
+    */
+
+    std::string emit_cst(){return std::string("\"") + value + "\"";};
+    /*
+        Emit C* code
+    */
+
+    static AST* parse(std::vector<lexer::Token>, int local, symbol::Namespace* sr, std::string expected_type="@unknown");
 };

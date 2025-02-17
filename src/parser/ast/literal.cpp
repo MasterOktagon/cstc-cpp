@@ -6,6 +6,7 @@
 #include "../parser.hpp"
 #include <string>
 #include <regex>
+#include <iostream>
 
 IntLiteralAST::IntLiteralAST(int bits, std::string value, bool tsigned){
     this->bits  = bits;
@@ -21,8 +22,8 @@ std::string IntLiteralAST::emit_cst(){
     return value;
 }
 
-IntLiteralAST* IntLiteralAST::parse(std::vector<lexer::Token> tokens, int local, symbol::Namespace* sr, std::string expected_type){
-    if (tokens.size() < 1) return nullptr;
+AST* IntLiteralAST::parse(std::vector<lexer::Token> tokens, int local, symbol::Namespace* sr, std::string expected_type){
+    if (tokens.size() < 1 || tokens.size() > 2) return nullptr;
     std::regex r("u?int(8|16|32|64|128)");
     bool expected_int = std::regex_match(expected_type, r);
     if (expected_int){
@@ -60,7 +61,7 @@ std::string BoolLiteralAST::emit_ll(int locc){
 std::string BoolLiteralAST::emit_cst(){
     return value? "true" : "false";
 }
-BoolLiteralAST* BoolLiteralAST::parse(std::vector<lexer::Token> tokens, int local, symbol::Namespace* sr, std::string expected_type){
+AST* BoolLiteralAST::parse(std::vector<lexer::Token> tokens, int local, symbol::Namespace* sr, std::string expected_type){
     if (tokens.size() == 1){
         if (tokens[0].value == "true" || tokens[0].value == "false"){
             return new BoolLiteralAST(tokens[0].value == "true");
@@ -90,7 +91,7 @@ std::string FloatLiteralAST::get_ll_type(){
     else                 return "fp128";
 }
 
-FloatLiteralAST* FloatLiteralAST::parse(std::vector<lexer::Token> tokens, int local, symbol::Namespace* sr, std::string expected_type){
+AST* FloatLiteralAST::parse(std::vector<lexer::Token> tokens, int local, symbol::Namespace* sr, std::string expected_type){
     if (tokens.size() < 1) return nullptr;
     std::regex r("float(16|32|64|128)");
     bool expected_float = std::regex_match(expected_type, r);
@@ -120,3 +121,25 @@ FloatLiteralAST* FloatLiteralAST::parse(std::vector<lexer::Token> tokens, int lo
     }
     return nullptr;
 }
+
+CharLiteralAST::CharLiteralAST(std::string value){
+    this->value = value;
+}
+
+AST* CharLiteralAST::parse(std::vector<lexer::Token> tokens, int local, symbol::Namespace* sr, std::string expected_type){
+    if (tokens.size() != 1) return nullptr;
+    if (tokens[0].type == lexer::Token::TokenType::CHAR){
+        if (tokens[0].value.size() == 2){
+            parser::error("Empty char", tokens[0], "This char value is empty. This is not supported. Did you mean '\\u0000' ?", 578);
+            return new AST();
+        }
+        std::regex r ("'\\u[0-9a-fA-F][0-9a-fA-F][0-9a-fA-F][0-9a-fA-F]'");
+        if (std::regex_match(tokens[0].value, r) || tokens[0].value.size() == 3){
+            return new CharLiteralAST(tokens[0].value.substr(1,tokens[0].value.size()-1));
+        }
+        parser::error("Invalid char", tokens[0], "This char value is not supported. Chars are meant to hold only one character. Did you mean to use \"Double quotes\" ?", 579);
+        return new AST();
+    }
+    return nullptr;
+}
+

@@ -1,5 +1,6 @@
 
 #include "lexer.hpp"
+#include "../parser/parser.hpp"
 #include <string>
 #include <iostream>
 #include <regex>

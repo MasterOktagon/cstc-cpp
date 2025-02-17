@@ -4,6 +4,11 @@
 #include "../../lexer/lexer.hpp"
 #include "../symboltable.hpp"
 
+namespace math {
+    extern AST* parse(std::vector<lexer::Token>, int local, symbol::Namespace* sr, std::string expected_type="@unknown");
+
+}
+
 class AddAST : public AST {
     AST* left;
     AST* right;

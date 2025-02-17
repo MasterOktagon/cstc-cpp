@@ -7,7 +7,7 @@
 #include "../symboltable.hpp"
 #include <iostream>
 
-
+#define DEBUG
 // AddAST
 
 AddAST::AddAST(AST* left, AST* right){
@@ -57,17 +57,19 @@ AST* AddAST::parse(std::vector<lexer::Token> tokens, int local, symbol::Namespac
     }
     int split = parser::rsplitStack(tokens, {lexer::Token::TokenType::ADD, lexer::Token::TokenType::SUB}, local);
     if (first_is_sub) tokens.insert(tokens.begin(), first);
-    if (tokens.size() > 2 && split != 0 && split != tokens.size()){
+    if (tokens.size() > 2 && split != 0 && split != tokens.size()-1){
         #ifdef DEBUG
             std::cout << "AddAST::parse:\tfirst_is_sub:\t" << first_is_sub << std::endl;
+            std::cout << "AddAST::parse:\tvalue size:\t" << tokens.size() << std::endl;
+            std::cout << "AddAST::parse:\tsplit:\t" << split << std::endl;
         #endif
         lexer::Token op = tokens[split+first_is_sub];
-        AST* left = IntLiteralAST::parse(parser::subvector(tokens, 0,1,split + first_is_sub), local, sr, expected_type);
+        AST* left = math::parse(parser::subvector(tokens, 0,1,split + first_is_sub), local, sr, expected_type);
         if (left == nullptr){
             parser::error("Expression expected", tokens[0], tokens[split+first_is_sub-1], std::string("Expected espression of type \e[1m") + expected_type + "\e[0m", 111);
             return new AST();
         }
-        AST* right = IntLiteralAST::parse(parser::subvector(tokens, split + first_is_sub+1,1,tokens.size()), local, sr, expected_type);
+        AST* right = math::parse(parser::subvector(tokens, split + first_is_sub+1,1,tokens.size()), local, sr, expected_type);
         if (right == nullptr){
             parser::error("Expression expected", tokens[split+first_is_sub], tokens[tokens.size()-1], std::string("Expected espression of type \e[1m") + expected_type + "\e[0m", 111);
             delete left;
@@ -168,12 +170,12 @@ AST* MulAST::parse(std::vector<lexer::Token> tokens, int local, symbol::Namespac
             std::cout << "MulAST::parse:\tsplit:\t" << split << std::endl;
         #endif
         lexer::Token op = tokens[split];
-        AST* left = IntLiteralAST::parse(parser::subvector(tokens, 0,1,split), local, sr, expected_type);
+        AST* left = math::parse(parser::subvector(tokens, 0,1,split), local, sr, expected_type);
         if (left == nullptr){
             parser::error("Expression expected", tokens[0], tokens[split-1], std::string("Expected espression of type \e[1m") + expected_type + "\e[0m", 111);
             return new AST();
         }
-        AST* right = IntLiteralAST::parse(parser::subvector(tokens, split+1,1,tokens.size()), local, sr, expected_type);
+        AST* right = math::parse(parser::subvector(tokens, split+1,1,tokens.size()), local, sr, expected_type);
         if (right == nullptr){
             parser::error("Expression expected", tokens[split], tokens[tokens.size()-1], std::string("Expected espression of type \e[1m") + expected_type + "\e[0m", 111);
             delete left;
@@ -298,4 +300,16 @@ std::string AddrOfAST::emit_ll(int locc){
 
     return prec + out;
 }
+
+
+AST* math::parse(std::vector<lexer::Token> tokens, int local, symbol::Namespace* sr, std::string expected_type){
+    return parser::parseOneOf(tokens, {
+        IntLiteralAST::parse,
+        FloatLiteralAST::parse,
+        BoolLiteralAST::parse,
+        CharLiteralAST::parse,
+
+        AddAST::parse, MulAST::parse}, local, sr, expected_type);
+}
+
 
