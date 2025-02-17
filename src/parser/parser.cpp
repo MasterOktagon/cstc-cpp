@@ -59,13 +59,18 @@ void parser::error(std::string name, lexer::Token t, lexer::Token t2, std::strin
             pb += " ";
         }
         pb += "\e[31m^";
-        for (int i=1; i<t.line_content.size() - t.column; i++){
+        for (int i=1; i<t.line_content.size() - (t.column-2); i++){
             pb += "^";
         }
         pb += "\e[0m";
         for (int i=0; i<std::to_string(t.line).size(); i++) pb += " ";
-        pb += std::string(" |\t\t\e[31m( ") + std::to_string(abs(t2.line - t.line)) + " lines emitted)\e[0m\n";
-        pb += std::string(" ") + std::to_string(t2.line) + " |\t" + t2.line_content + "\n";
+        if(abs(t2.line - t.line) > 1){
+            pb += std::string("\n ");
+            for (int i=0; i<std::to_string(t.line).size(); i++) pb += " ";
+            pb += std::string(" |\t\t\e[31m( ") + std::to_string(abs(t2.line - t.line)-1) + " line(s) hidden)\e[0m\n";
+        }
+        else pb += "\n";
+        pb += std::string(" ") + std::to_string(t2.line) + " |\t" + t2.line_content + "\n ";
         for (int i=0; i<std::to_string(t2.line).size(); i++) pb += " ";
         pb += " |\t";
         pb += "\e[31m^";
