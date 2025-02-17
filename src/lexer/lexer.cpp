@@ -206,7 +206,7 @@ std::string getline_from_str(std::string text, unsigned int line){
 std::vector<lexer::Token> lexer::tokenize(std::string text, std::string filename){
     std::vector<Token> tokens = {};
     
-    unsigned i = 0, c = 0, l = 2;
+    unsigned i = 0, c = 0, l = 1;
     std::string buffer = "";
     char next = ' ';
     bool in_string = false;
@@ -217,6 +217,7 @@ std::vector<lexer::Token> lexer::tokenize(std::string text, std::string filename
     
     while ((size_t) i < text.size()){
         c++;
+        if(text[i] == '\n'){c=1; l++;}
         if (c > PRETTY_SIZE && text[i] != ' ' && text[i] != '\t' && text[i] != '\n' && last_linetoolong != l){
             warn("Line too long", l, 101, getline_from_str(text, l-bool(text[i]=='\n')), filename, "It will become hard to read if you do long lines", 109);
             last_linetoolong = l;
