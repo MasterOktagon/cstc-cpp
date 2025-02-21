@@ -1,7 +1,11 @@
 #pragma once
 #include <string>
+#include <vector>
+#include "../../lexer/lexer.hpp"
 
 class AST {
+    protected:
+    std::vector<lexer::Token> tokens;
 
     public:
     AST(){}
@@ -20,6 +24,10 @@ class AST {
     
     virtual std::string get_type(){return "@unknown";}
     virtual std::string get_ll_type(){return "";}
+    virtual void force_type(std::string type){}
+    /*
+        Try to enforce a specific type
+    */
 };
 
 extern std::string max_prec_type(std::string a, std::string b);

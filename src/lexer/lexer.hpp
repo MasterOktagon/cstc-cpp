@@ -2,7 +2,7 @@
 #include <string>
 #include <vector>
 
-#define PRETTY_SIZE 100
+#define PRETTY_SIZE 120
 
 namespace lexer {
 /*

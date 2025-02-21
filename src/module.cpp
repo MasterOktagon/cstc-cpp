@@ -226,7 +226,8 @@ bool is_less(Module* a, Module* b){
 
 void Module::parse(){
     tokens.pop_back();
-    root = math::parse(tokens, 0, this, "int32");
+    root = math::parse(tokens, 0, this, "@unknown");
+    root->force_type("bool");
 
     if(root != nullptr){
         std::cout << root->emit_ll() << std::endl;

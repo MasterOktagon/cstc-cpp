@@ -7,6 +7,7 @@
 #include "ast.hpp"
 
 class LiteralAST : public AST {
+
     public:
     virtual ~LiteralAST(){}
     virtual std::string get_value(){return "";}
@@ -14,15 +15,15 @@ class LiteralAST : public AST {
 
 class IntLiteralAST : public LiteralAST {
 
-    std::string value = "0"; // Integer value
     int bits = 32;           // Integer Bit size
     bool tsigned = true;
 
     public:
 
-    IntLiteralAST(int bits, std::string value, bool tsigned=true);
+    std::string value = "0"; // Integer value
+    IntLiteralAST(int bits, std::string value, bool tsigned=true, std::vector<lexer::Token> tokens={});
     virtual ~IntLiteralAST(){}
-    std::string get_type(){return "@int";}
+    std::string get_type(){return (tsigned ? std::string("int") : std::string("uint")) + std::to_string(bits);}
     std::string get_ll_type(){return std::string("i") + std::to_string(bits);}
     std::string get_value(){return value;}
 
@@ -38,6 +39,7 @@ class IntLiteralAST : public LiteralAST {
         Emit C* code
     */
     static AST* parse(std::vector<lexer::Token>, int local, symbol::Namespace* sr, std::string expected_type="@unknown");
+    void force_type(std::string type);
 };
 
 class BoolLiteralAST : public LiteralAST {
@@ -46,7 +48,7 @@ class BoolLiteralAST : public LiteralAST {
 
     public:
 
-    BoolLiteralAST(bool value);
+    BoolLiteralAST(bool value, std::vector<lexer::Token> tokens);
     virtual ~BoolLiteralAST(){}
     std::string get_type(){return "bool";}
     std::string get_ll_type(){return "i1";}
@@ -65,6 +67,7 @@ class BoolLiteralAST : public LiteralAST {
     */
 
     static AST* parse(std::vector<lexer::Token>, int local, symbol::Namespace* sr, std::string expected_type="@unknown");
+    void force_type(std::string type);
 };
 
 class FloatLiteralAST : public LiteralAST {
@@ -74,7 +77,7 @@ class FloatLiteralAST : public LiteralAST {
 
     public:
 
-    FloatLiteralAST(int bits, std::string value);
+    FloatLiteralAST(int bits, std::string value, std::vector<lexer::Token> tokens={});
     virtual ~FloatLiteralAST(){}
     std::string get_type(){return "@float";}
     std::string get_ll_type();
@@ -93,6 +96,7 @@ class FloatLiteralAST : public LiteralAST {
     */
 
     static AST* parse(std::vector<lexer::Token>, int local, symbol::Namespace* sr, std::string expected_type="@unknown");
+    void force_type(std::string type);
 };
 
 class CharLiteralAST : public LiteralAST {
@@ -101,7 +105,7 @@ class CharLiteralAST : public LiteralAST {
 
     public:
 
-    CharLiteralAST(std::string value);
+    CharLiteralAST(std::string value, std::vector<lexer::Token> tokens);
     virtual ~CharLiteralAST(){}
     std::string get_type(){return "char";}
     std::string get_ll_type(){return "i16";};
@@ -120,4 +124,5 @@ class CharLiteralAST : public LiteralAST {
     */
 
     static AST* parse(std::vector<lexer::Token>, int local, symbol::Namespace* sr, std::string expected_type="@unknown");
+    void force_type(std::string type);
 };

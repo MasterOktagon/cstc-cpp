@@ -218,13 +218,12 @@ std::vector<lexer::Token> lexer::tokenize(std::string text, std::string filename
     int last_linetoolong = 0;
     
     while ((size_t) i < text.size()){
-        if(text[i] == '\n'){c=0; l++;}
         c++;
         if (c > PRETTY_SIZE && text[i] != ' ' && text[i] != '\t' && text[i] != '\n' && last_linetoolong != l){
             warn("Line too long", l, 101, getline_from_str(text, l-bool(text[i]=='\n')), filename, "It will become hard to read if you do long lines", 109);
             last_linetoolong = l;
         }
-        if(text[i] == '\t') c += 3;
+        if(text[i] == '\t') c += 4;
         //if (text[i] == '\n'){c = 1; l++;}
         if (in_inline_comment && text[i] != '\n'){
             i++;
@@ -242,6 +241,7 @@ std::vector<lexer::Token> lexer::tokenize(std::string text, std::string filename
             continue;
         }
         else if (!in_inline_comment && next == '*' && text[i] == '/'){
+            if(text[i] == '\n'){c=1; l++;}
             ml_comment_level++;
             Token::TokenType type = matchType(buffer);
             if (buffer != ""){
@@ -250,6 +250,7 @@ std::vector<lexer::Token> lexer::tokenize(std::string text, std::string filename
             }
         }
         else if (!in_inline_comment && next == '/' && text[i] == '*'){
+            if(text[i] == '\n'){c=1; l++;}
             ml_comment_level--;
             if (ml_comment_level < 0){
                 error("Unopened multiline comment", Token(Token::TokenType::NONE, "*/", getline_from_str(text, l-bool(text[i]=='\n')), l, c, filename), "This */ multiline closing was never opened", 2350);
@@ -286,7 +287,7 @@ std::vector<lexer::Token> lexer::tokenize(std::string text, std::string filename
             else if (text[i] == ' ' || text[i] == '\t' || text[i] == '\n' || i+1 >= text.size()){
                 Token::TokenType type = matchType(buffer);
                 if (buffer != ""){
-                    tokens.push_back(Token(type, buffer, getline_from_str(text, l-bool(text[i]=='\n')), l, c-buffer.size(), filename));
+                    tokens.push_back(Token(type, buffer, getline_from_str(text, l), l, c-buffer.size(), filename));
                     buffer = "";
                 }
                 in_inline_comment = false;
@@ -312,6 +313,7 @@ std::vector<lexer::Token> lexer::tokenize(std::string text, std::string filename
                 buffer += text[i];
             }
         }
+        if(text[i] == '\n'){c=1; l++;}
         i++;
     }
 

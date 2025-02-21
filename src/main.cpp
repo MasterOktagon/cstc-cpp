@@ -13,7 +13,7 @@ int main(int argc, const char** argv){
 
     if (argc < 2){
         std::cerr << "\e[1;31mERROR:\e[0m No File specified" << std::endl;
-        return -1;
+        return 1;
     }
 
     std::map<std::string, std::string> flags = {};
@@ -32,12 +32,12 @@ int main(int argc, const char** argv){
                 }
                 else{
                     std::cerr << "\e[1;31mERROR:\e[0m File not found: " << argv[i] << std::endl;
-                    return -2;
+                    return 3;
                 }
             }
             else {
                 std::cerr << "\e[1;31mERROR:\e[0m You can only pass one main file!" << std::endl;
-                return -10;
+                return 4;
             }
         }
         else {
@@ -61,7 +61,7 @@ int main(int argc, const char** argv){
 
     if(!main_file_loaded){
         std::cerr << "\e[1;31mERROR:\e[0m No main file specified!" << std::endl;
-        return 43;
+        return 1;
     }
     if (flags.count("--one-error") > 0){
         parser::one_error = true;
@@ -88,12 +88,12 @@ int main(int argc, const char** argv){
     }
     
     if (parser::errc > 0){
-        
+        std::exit(2);
     }
     else{
         std::cout << "Complete!" << std::endl;
     }
-    return 0;
+    std::exit(0);
 }
 
 

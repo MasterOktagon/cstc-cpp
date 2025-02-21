@@ -8,10 +8,11 @@
 #include <regex>
 #include <iostream>
 
-IntLiteralAST::IntLiteralAST(int bits, std::string value, bool tsigned){
+IntLiteralAST::IntLiteralAST(int bits, std::string value, bool tsigned, std::vector<lexer::Token> tokens){
     this->bits  = bits;
     this->value = value;
     this->tsigned = tsigned;
+    this->tokens  = tokens;
 }
 
 std::string IntLiteralAST::emit_ll(int locc){
@@ -24,34 +25,38 @@ std::string IntLiteralAST::emit_cst(){
 
 AST* IntLiteralAST::parse(std::vector<lexer::Token> tokens, int local, symbol::Namespace* sr, std::string expected_type){
     if (tokens.size() < 1 || tokens.size() > 2) return nullptr;
-    std::regex r("u?int(8|16|32|64|128)");
-    bool expected_int = std::regex_match(expected_type, r);
-    if (expected_int){
-        bool sig = expected_type[0] != 'u';
-        //std:: cout << expected_type.substr(3+(!sig),expected_type.size()) << std::endl;
-        int bits = std::stoi(expected_type.substr(3+(!sig),expected_type.size()));
         if (tokens[0].type == lexer::Token::TokenType::INT){
-            return new IntLiteralAST(bits, tokens[0].value, sig);
+            return new IntLiteralAST(32, tokens[0].value, false, tokens);
         }
         else if (tokens[0].type == lexer::Token::TokenType::HEX){
-            return new IntLiteralAST(bits, tokens[0].value, sig);
+            return new IntLiteralAST(32, tokens[0].value, false, tokens);
         }
         else if (tokens[0].type == lexer::Token::TokenType::SUB && tokens.size() == 2 && tokens[1].type == lexer::Token::TokenType::INT){
-            if (sig) {
-                return new IntLiteralAST(bits, std::string("-") + tokens[1].value, sig);
-            }
-            parser::error("Sign mismatch", tokens[0],tokens[1],std::string("Found a signed value (expected ") + expected_type + ")", 1234);
+            return new IntLiteralAST(32, std::string("-") + tokens[1].value, true, tokens);
         }
-        //else parser::error("Type mismatch", tokens[0],tokens[tokens.size()-1],std::string("expected a ") + expected_type, 1233);
-    }
-
     return nullptr;
+}
+
+void IntLiteralAST::force_type(std::string type){
+    std::regex r("u?int(8|16|32|64|128)");
+    bool expected_int = std::regex_match(type, r);
+    if (expected_int){
+        bool sig = type[0] != 'u';
+        int bits = std::stoi(type.substr(3+(!sig),type.size()));
+
+        if(value[0] == '-' && !sig) parser::error("Sign mismatch", tokens[0],tokens[1],std::string("Found a signed value (expected \e[1m") + type + "\e[0m)", 45);
+        tsigned = sig;
+        this->bits = bits;
+
+    }
+    else parser::error("Type mismatch", tokens[0],tokens[tokens.size()-1],std::string("expected a \e[1m") + type + "\e[0m, found int", 17, "Caused by");
 }
 
 
 
-BoolLiteralAST::BoolLiteralAST(bool value){
+BoolLiteralAST::BoolLiteralAST(bool value, std::vector<lexer::Token> tokens){
     this->value = value;
+    this->tokens = tokens;
 }
 
 std::string BoolLiteralAST::emit_ll(int locc){
@@ -64,16 +69,20 @@ std::string BoolLiteralAST::emit_cst(){
 AST* BoolLiteralAST::parse(std::vector<lexer::Token> tokens, int local, symbol::Namespace* sr, std::string expected_type){
     if (tokens.size() == 1){
         if (tokens[0].value == "true" || tokens[0].value == "false"){
-            return new BoolLiteralAST(tokens[0].value == "true");
+            return new BoolLiteralAST(tokens[0].value == "true", tokens);
         }
     }
     return nullptr;
 }
+void BoolLiteralAST::force_type(std::string type){
+    if (type != "bool") parser::error("Type mismatch", tokens[0] ,std::string("expected a \e[1m") + type + "\e[0m, found bool", 17, "Caused by");
+}
 
 
-FloatLiteralAST::FloatLiteralAST(int bits, std::string value){
+FloatLiteralAST::FloatLiteralAST(int bits, std::string value, std::vector<lexer::Token> tokens){
     this->bits  = bits;
     this->value = value;
+    this->tokens = tokens;
 }
 
 std::string FloatLiteralAST::emit_ll(int locc){
@@ -93,37 +102,44 @@ std::string FloatLiteralAST::get_ll_type(){
 
 AST* FloatLiteralAST::parse(std::vector<lexer::Token> tokens, int local, symbol::Namespace* sr, std::string expected_type){
     if (tokens.size() < 1) return nullptr;
-    std::regex r("float(16|32|64|128)");
-    bool expected_float = std::regex_match(expected_type, r);
-    if (expected_float){
-        bool sig=false;
-        int bits = std::stoi(expected_type.substr(5,expected_type.size()));
-        if (tokens[0].type == lexer::Token::TokenType::SUB){
-            sig = true;
-            tokens = parser::subvector(tokens, 1,1,tokens.size());
-        }
-        if (tokens.size() < 2) return nullptr;
-        if (tokens.size() > 3) return nullptr;
-        if (tokens[0].type == lexer::Token::TokenType::ACCESS && tokens[1].type == lexer::Token::TokenType::INT){
-            return new FloatLiteralAST(bits, (sig? std::string("-0.") : std::string("0.")) + tokens[1].value + "e00");
-        }
-        else if (tokens[0].type == lexer::Token::TokenType::INT && tokens[1].type == lexer::Token::TokenType::ACCESS){
-            std::string val = (sig? std::string("-") : std::string("")) + tokens[0].value + ".";
-            if (tokens.size() == 3){
-                if (tokens[2].type == lexer::Token::TokenType::INT){
-                    val += tokens[2].value;
-                }
-                else return nullptr;
+    bool sig=false;
+    auto t = tokens;
+    if (tokens[0].type == lexer::Token::TokenType::SUB){
+        sig = true;
+        tokens = parser::subvector(tokens, 1,1,tokens.size());
+    }
+    if (tokens.size() < 2) return nullptr;
+    if (tokens.size() > 3) return nullptr;
+    if (tokens[0].type == lexer::Token::TokenType::ACCESS && tokens[1].type == lexer::Token::TokenType::INT){
+        return new FloatLiteralAST(32, (sig? std::string("-0.") : std::string("0.")) + tokens[1].value + "e00", t);
+    }
+    else if (tokens[0].type == lexer::Token::TokenType::INT && tokens[1].type == lexer::Token::TokenType::ACCESS){
+        std::string val = (sig? std::string("-") : std::string("")) + tokens[0].value + ".";
+        if (tokens.size() == 3){
+            if (tokens[2].type == lexer::Token::TokenType::INT){
+                val += tokens[2].value;
             }
-            val += "0e00";
-            return new FloatLiteralAST(bits, val);
+            else return nullptr;
         }
+        val += "0e00";
+        return new FloatLiteralAST(32, val, t);
     }
     return nullptr;
 }
 
-CharLiteralAST::CharLiteralAST(std::string value){
+void FloatLiteralAST::force_type(std::string type){
+    std::regex r("float(16|32|64|128)");
+    bool expected_float = std::regex_match(type, r);
+    if (expected_float){
+        int bits = std::stoi(type.substr(5,type.size()));
+        this->bits = bits;
+    }
+    else parser::error("Type mismatch", tokens[0], tokens[tokens.size()-1] ,std::string("expected a \e[1m") + type + "\e[0m, found float", 17, "Caused by");
+}
+
+CharLiteralAST::CharLiteralAST(std::string value, std::vector<lexer::Token> tokens){
     this->value = value;
+    this->tokens = tokens;
 }
 
 AST* CharLiteralAST::parse(std::vector<lexer::Token> tokens, int local, symbol::Namespace* sr, std::string expected_type){
@@ -137,7 +153,7 @@ AST* CharLiteralAST::parse(std::vector<lexer::Token> tokens, int local, symbol::
         std::regex r2 ("'\\\\(n|a|r|t|f|v|\\\\|'|\"|)'");
         if (std::regex_match(tokens[0].value, r) || std::regex_match(tokens[0].value, r2) || tokens[0].value.size() == 3){
             //std::cout<<"skdskdl"<<std::endl;
-            return new CharLiteralAST(tokens[0].value);
+            return new CharLiteralAST(tokens[0].value, tokens);
         }
         parser::error("Invalid char", tokens[0], "This char value is not supported. Chars are meant to hold only one character. Did you mean to use \"Double quotes\" ?", 579);
         return new AST();
@@ -161,4 +177,10 @@ std::string CharLiteralAST::get_value(){
     }
 
     return std::string("\"") + this->value[1] + "\"";
+}
+
+void CharLiteralAST::force_type(std::string type){
+    if (type != "char"){
+        parser::error("Type mismatch", tokens[0], tokens[tokens.size()-1] ,std::string("expected a \e[1m") + type + "\e[0m, found char", 17, "Caused by");
+    }
 }

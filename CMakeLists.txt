@@ -16,5 +16,8 @@ add_compile_options(-W -Wall -Wextra)
 file(GLOB_RECURSE SRC "src/*")
 
 add_executable (cstc ${SRC})
-
+find_package( LLVM REQUIRED )
+target_link_libraries(cstc PRIVATE ${LLVM_LIBRARIES})
+target_include_directories(cstc PRIVATE ${LLVM_INCLUDE_DIRS})
+target_link_directories(cstc PRIVATE ${LLVM_LIBRARY_DIRS})
 
