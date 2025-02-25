@@ -95,6 +95,7 @@ lexer::Token::TokenType getDoubleToken(std::string s){
 
     if (s == "<-") return lexer::Token::TokenType::UNPACK;
     if (s == "::") return lexer::Token::TokenType::SUBNS;
+    if (s == "..") return lexer::Token::TokenType::DOTDOT;
 
     return lexer::Token::TokenType::NONE;
 }

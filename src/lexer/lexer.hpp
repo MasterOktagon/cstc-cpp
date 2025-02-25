@@ -77,6 +77,7 @@ Holds functions adding to the tokenizing features
             SUBNS    ,        // ::
             ACCESS   ,        // .
             COMMA    ,        // ,
+            DOTDOT   ,        // ..
 
                 // PARANTHESIS //
             PT_OPEN   ,       // (
