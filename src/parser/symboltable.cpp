@@ -1,8 +1,15 @@
 
 #include "symboltable.hpp"
+#include <llvm-14/llvm/IR/LLVMContext.h>
 #include <string>
 #include <map>
 #include <iostream>
+
+//llvm::LLVMContext* context;
+
+//void setup_codegen(){
+//    context = new llvm::LLVMContext();
+//}
 
 symbol::SymbolReference::~SymbolReference(){}
 

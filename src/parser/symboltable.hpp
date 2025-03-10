@@ -1,11 +1,15 @@
 #pragma once
 
+#include <llvm-14/llvm/IR/LLVMContext.h>
 #include <string>
 #include <vector>
 #include <map>
 
 template<typename T, typename S>
 using MultiMap = std::map<T, std::vector<S>>;
+
+//extern llvm::LLVMContext* context;
+//extern void setup_codegen();
 
 namespace symbol {
 
@@ -28,6 +32,7 @@ namespace symbol {
         public:
         virtual std::string find (std::string name) = 0;
         virtual std::vector<Func*> find_fn(std::string name) = 0;
+        virtual llvm::LLVMContext* get_context(){return nullptr;}
 
         SymbolReference(){}
         
@@ -47,6 +52,7 @@ namespace symbol {
         virtual std::string find (std::string name);
         virtual std::vector<Func*> find_fn (std::string name);
         void add(std::string, SymbolReference* sr);
+        //virtual llvm::LLVMContext* get_context(){return context;}
 
         Namespace(std::string l){loc = l;}
         Namespace(){table = {};}
@@ -58,6 +64,7 @@ namespace symbol {
         bool on_stack;
 
         public:
+        bool used = false;
         std::string find (std::string name);
         std::vector<Func*> find_fn (std::string name){return {};}
 

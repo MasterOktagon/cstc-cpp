@@ -10,6 +10,7 @@ using fsignal = T (*) (K ... );
 
 namespace parser {
     extern unsigned int errc;
+    extern unsigned int warnc;
     extern bool one_error;
 
     void error(std::string name, lexer::Token pos, std::string msg, int code, std::string appendix = "");
@@ -30,4 +31,6 @@ namespace parser {
     extern bool typeEq(std::string a, std::string b);
     extern std::string hasOp(std::string type1, std::string type2, lexer::Token::TokenType op);
     extern bool isAtomic(std::string type);
+
+    extern bool is_snake_case(std::string text);
 }

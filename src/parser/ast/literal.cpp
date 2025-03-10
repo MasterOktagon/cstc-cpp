@@ -31,11 +31,15 @@ AST* IntLiteralAST::parse(std::vector<lexer::Token> tokens, int local, symbol::N
         else if (tokens[0].type == lexer::Token::TokenType::HEX){
             return new IntLiteralAST(32, tokens[0].value, false, tokens);
         }
-        else if (tokens[0].type == lexer::Token::TokenType::SUB && tokens.size() == 2 && tokens[1].type == lexer::Token::TokenType::INT){
+        else if ((tokens[0].type == lexer::Token::TokenType::SUB || tokens[0].type == lexer::Token::TokenType::NEC) && tokens.size() == 2 && tokens[1].type == lexer::Token::TokenType::INT){
             return new IntLiteralAST(32, std::string("-") + tokens[1].value, true, tokens);
         }
     return nullptr;
 }
+
+//llvm::Value* IntLiteralAST::codegen(){
+//    return llvm::ConstantInt::get(*context, llvm::APInt(bits, (uint64_t) std::stoll(value), std::stoll(value) < 0));
+//}
 
 void IntLiteralAST::force_type(std::string type){
     std::regex r("u?int(8|16|32|64|128)");
@@ -104,7 +108,7 @@ AST* FloatLiteralAST::parse(std::vector<lexer::Token> tokens, int local, symbol:
     if (tokens.size() < 1) return nullptr;
     bool sig=false;
     auto t = tokens;
-    if (tokens[0].type == lexer::Token::TokenType::SUB){
+    if (tokens[0].type == lexer::Token::TokenType::SUB || tokens[0].type == lexer::Token::TokenType::NEC){
         sig = true;
         tokens = parser::subvector(tokens, 1,1,tokens.size());
     }
@@ -184,3 +188,42 @@ void CharLiteralAST::force_type(std::string type){
         parser::error("Type mismatch", tokens[0], tokens[tokens.size()-1] ,std::string("expected a \e[1m") + type + "\e[0m, found char", 17, "Caused by");
     }
 }
+
+StringLiteralAST::StringLiteralAST(std::string value, std::vector<lexer::Token> tokens){
+    this->value = value;
+    this->tokens = tokens;
+}
+
+AST* StringLiteralAST::parse(std::vector<lexer::Token> tokens, int local, symbol::Namespace* sr, std::string expected_type){
+    if (tokens.size() != 1) return nullptr;
+    if (tokens[0].type == lexer::Token::TokenType::STRING){
+        return new StringLiteralAST(tokens[0].value, tokens);
+    }
+    return nullptr;
+}
+
+std::string StringLiteralAST::get_value(){
+    /*if (this->value == "'\\n'") return "\"\\00\\0A\"";
+    if (this->value == "'\\t'") return "\"\\00\\09\"";
+    if (this->value == "'\\v'") return "\"\\00\\0B\"";
+    if (this->value == "'\\f'") return "\"\\00\\0C\"";
+    if (this->value == "'\\r'") return "\"\\00\\0D\"";
+    if (this->value == "'\\a'") return "\"\\00\\07\"";
+    if (this->value == "'\\\"'") return "\"\\00\\22\"";
+    if (this->value == "'\\\\'") return "\"\\00\\5C\"";
+    if (this->value == "'\\\''") return "\"\\00\\27\"";
+
+    if (this->value[1] == '\\' && this->value.size() == 8){
+        return std::string("\"\\") + this->value.substr(3, 2) + "\\" + this->value.substr(5, 2) + "\"";
+    }
+
+    return std::string("\"") + this->value[1] + "\"";*/
+    return "";
+}
+
+void StringLiteralAST::force_type(std::string type){
+    if (type != "String"){
+        parser::error("Type mismatch", tokens[0], tokens[tokens.size()-1] ,std::string("expected a \e[1m") + type + "\e[0m, found String", 17, "Caused by");
+    }
+}
+

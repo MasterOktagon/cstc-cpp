@@ -46,6 +46,7 @@ Holds functions adding to the tokenizing features
             POW      ,        // **
             INC      ,        // ++
             DEC      ,        // --
+            NEC      ,        // - <int>
 
             NEG      ,        // ~
             AND      ,        // &
@@ -101,6 +102,7 @@ Holds functions adding to the tokenizing features
             NOIMPL    ,
             RETURN    ,
             AS        ,
+            OPERATOR  ,
 
             IMPORT    ,
             IMPLEMENTS,

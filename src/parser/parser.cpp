@@ -13,6 +13,7 @@
 
 
 unsigned int parser::errc = 0;
+unsigned int parser::warnc = 0;
 bool parser::one_error = false;
 
 #define DEBUG
@@ -51,7 +52,7 @@ void parser::error(std::string name, lexer::Token t, lexer::Token t2, std::strin
             pb += " ";
         }
         pb += "\e[31m^";
-        for (size_t i=1; i<t2.column + t2.value.size() - t.column + 2; i++){
+        for (size_t i=1; i<t2.column + t2.value.size() - t.column; i++){
             pb += "^";
         }
         pb += "\e[0m";
@@ -70,7 +71,7 @@ void parser::error(std::string name, lexer::Token t, lexer::Token t2, std::strin
             pb += " ";
         }
         pb += "\e[31m^";
-        for (size_t i=1; i<t.line_content.size() - (t.column); i++){
+        for (size_t i=1; i<t.line_content.size() - t.column; i++){
             pb += "^";
         }
         pb += "\e[0m";
@@ -113,6 +114,7 @@ void parser::warn(std::string name, lexer::Token t, std::string msg, int code){
     }
     pb += "\e[0m";
 
+    parser::warnc++;
     std::cerr << pb << std::endl << std::endl;
 }
 
@@ -151,6 +153,7 @@ void parser::warn(std::string name, lexer::Token t, std::string msg, int code){
 
 
 std::string parser::hasOp(std::string type1, std::string type2, lexer::Token::TokenType op){
+    if(type1 == "@unknown" || type2 == "@unknown") return "@unknown";
     std::regex int_regex("u?int(8|16|32|64|128)");
     //std::regex float_regex("u?int(8|16|32|64|128)");
     if (type1 == "bool"){
@@ -331,4 +334,10 @@ bool parser::isAtomic(std::string type){
     if(type[type.size()-1] == '*') return true;
     if(type[type.size()-1] == '&') return true;
     return false;
+}
+
+bool parser::is_snake_case(std::string text){
+    const std::regex rx("[a-z\\_][a-z0-9\\_]*");
+    std::cmatch m;
+    return std::regex_match(text.c_str(), m, rx);
 }

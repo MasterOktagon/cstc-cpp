@@ -70,7 +70,7 @@ int main(int argc, const char** argv){
     Module prog_root = Module(main_file, true);
     Module::load_order.push_back(&prog_root);
 
-    if(Module::load_order.size() < 1) std::exit(-67);
+    if(Module::load_order.size() < 1) std::exit(-1);
     Module::load_order.sort(is_less);
 
     std::cout << Module::load_order.size() << " Module(s) loaded succesfully" << std::endl;
@@ -78,7 +78,9 @@ int main(int argc, const char** argv){
     if (flags.count("--list-modules") > 0 || flags.count("-l")){
         std::cout << "\e[1;36mINFO:\e[0m Modules loaded:" << std::endl;
         for (Module* mod : Module::load_order){
-            std::cout << "\t\e[1m" << mod->module_name << "\e[0m" << (mod->is_header()? " [from Header] " : "") << std::endl;
+            std::string s = mod->module_name;
+            while (s.size() < 80) s += " ";
+            std::cout << "\t\e[1m" << s << "\e[0;36m" << (mod->is_header()? " [from Header]\e[0m\t @ " : "\e[0m\t\t @ ") << (mod->is_header() ? mod->hst_filename : mod->cst_filename) << std::endl;
         } 
     }
 
@@ -87,10 +89,21 @@ int main(int argc, const char** argv){
         m->parse();
     }
     
-    if (parser::errc > 0){
-        std::exit(2);
+    if (parser::errc > 0 || parser::warnc > 0){
+        std::cout << "\n";
+        std::cout << parser::errc << " error" << (parser::errc == 1 ? ", " : "s, ") << parser::warnc << " warning" << (parser::warnc == 1 ? "" : "s") << " generated\n";
+        if (parser::warnc > 0 && flags.count("--punish") > 0){
+            std::cout << "Treating warnings as errors (--punish)\n\e[1;31mCompilation aborted\e[0m\n";
+            std::exit(2);
+        }
+        else if(parser::errc > 0){
+            std::cout << "\e[1;31mCompilation aborted\e[0m\n";
+            std::exit(2);
+        }
+        goto compile;
     }
     else{
+        compile:
         std::cout << "Complete!" << std::endl;
     }
     std::exit(0);

@@ -20,6 +20,8 @@ A file (ex. main File) was not found. See the stderr output for details
 
 This could be due to a missing file parameter or a multiple of them since `cstc` takes exactly one of them
 
+### 5 [File could not be opened]
+
 
 ## Compiler-Errorcodes
 
@@ -28,6 +30,8 @@ This could be due to a missing file parameter or a multiple of them since `cstc`
 |E2      | Module not found    | A module of this name wasn't found |
 |E17     | Type mismatch       | The found type does not match the expected type |
 |E18     | Unknown operator    | The desired Operator is not implemented for given types |
+|E19     | Unknown Type        | A Type of this name was not found. Make sure you have imported the module and you are using the right namespace|
+|E25     | Variable already defined | A variable of this name is already defined in this scope |
 |E45     | Sign mismatch       | The found type does imply a sign that does not fit into the expected type |
 
 
@@ -46,3 +50,4 @@ This could be due to a missing file parameter or a multiple of them since `cstc`
 |W13     | Unreachable code    | Code is not reachable. This could be because of a return that always triggers before |
 |W14     | Line too long       | Triggers if the line length is bigger than 120 |
 |W15     | `std::threads` not imported | Triggers if you use the `locked` keyword without `std::threads` imported |
+|W16     | Wrong casing        | The compiler expects a different casing on this symbol |

@@ -1,9 +1,11 @@
 
 #include "lexer.hpp"
 #include "../parser/parser.hpp"
+#include <cstddef>
 #include <string>
 #include <iostream>
 #include <regex>
+#include <algorithm>
 
 lexer::Token::Token(TokenType type, std::string value, std::string lc, unsigned int line, unsigned int column, std::string filename){
     this->value = value;
@@ -19,13 +21,13 @@ void lexer::error(std::string name, lexer::Token t, std::string msg, int code){
     std::cerr << std::endl << " " << std::to_string(t.line) << " |\t" << t.line_content << std::endl;
     std::string pb = " ";
     
-    for (int i=0; i<std::to_string(t.line).size(); i++) pb += " ";
+    for (size_t i=0; i<std::to_string(t.line).size(); i++) pb += " ";
     pb += " |\t";
-    for (int i=0; i<t.column-2; i++){
+    for (size_t i=0; i<t.column-2; i++){
         pb += " ";
     }
     pb += "\e[31m^";
-    for (int i=1; i<t.value.size(); i++){
+    for (size_t i=1; i<t.value.size(); i++){
         pb += "^";
     }
     pb += "\e[0m";
@@ -39,13 +41,13 @@ void lexer::warn(std::string name, lexer::Token t, std::string msg, int code){
     std::cerr << std::endl << " " << std::to_string(t.line) << " |\t" << t.line_content << std::endl;
     std::string pb = " ";
     
-    for (int i=0; i<std::to_string(t.line).size(); i++) pb += " ";
+    for (size_t i=0; i<std::to_string(t.line).size(); i++) pb += " ";
     pb += " |\t";
-    for (int i=0; i<t.column-2; i++){
+    for (size_t i=0; i<t.column-2; i++){
         pb += " ";
     }
     pb += "\e[33m^";
-    for (int i=1; i<t.value.size(); i++){
+    for (size_t i=1; i<t.value.size(); i++){
         pb += "^";
     }
     pb += "\e[0m";
@@ -58,17 +60,18 @@ void lexer::warn(std::string name, int l, int c, std::string lc, std::string fil
     std::cerr << std::endl << " " << std::to_string(l) << " |\t" << lc << std::endl;
     std::string pb = " ";
     
-    for (int i=0; i<std::to_string(l).size(); i++) pb += " ";
+    for (size_t i=0; i<std::to_string(l).size(); i++) pb += " ";
     pb += " |\t";
     for (int i=0; i<c-2; i++){
         pb += " ";
     }
     pb += "\e[33m^";
-    for (int i=1; i<1; i++){
+    for (size_t i=1; i<1; i++){
         pb += "^";
     }
     pb += "\e[0m";
 
+    parser::warnc++;
     std::cerr << pb << std::endl << std::endl;
 }
 
@@ -188,6 +191,7 @@ lexer::Token::TokenType matchType(std::string c){
     else if (c == "try"){ type = lexer::Token::TokenType::TRY; }
     else if (c == "new"){ type = lexer::Token::TokenType::NEW; }
     //else if (c == "delete"){ type = lexer::Token::TokenType::DELETE; }
+    else if (c == "operator"){ type = lexer::Token::TokenType::OPERATOR; }
     
     return type;
 }
@@ -216,12 +220,22 @@ std::vector<lexer::Token> lexer::tokenize(std::string text, std::string filename
     bool in_char = false;
     bool in_inline_comment = false;
     int ml_comment_level = 0;
-    int last_linetoolong = 0;
+    unsigned last_linetoolong = 0;
+
+    std::string text2 = text;
+    text2.erase(std::remove(text2.begin(), text2.end(), '\n'), text2.end());
+    text2.erase(std::remove(text2.begin(), text2.end(), ' '), text2.end());
+    text2.erase(std::remove(text2.begin(), text2.end(), '\t'), text2.end());
+
+    if(text2.size() == 0){
+        std::cerr << "\e[1;33mWARNING:\e[0m\e[1m " << filename << "\e[0m appears to be empty.\n";
+        return {};
+    }
     
     while ((size_t) i < text.size()){
         c++;
         if (c > PRETTY_SIZE && text[i] != ' ' && text[i] != '\t' && text[i] != '\n' && last_linetoolong != l){
-            warn("Line too long", l, 101, getline_from_str(text, l-bool(text[i]=='\n')), filename, "It will become hard to read if you do long lines", 109);
+            warn("Line too long", l, 101, getline_from_str(text, l-bool(text[i]=='\n')), filename, "It will become hard to read if you do long lines", 14);
             last_linetoolong = l;
         }
         if(text[i] == '\t') c += 4;
@@ -303,6 +317,18 @@ std::vector<lexer::Token> lexer::tokenize(std::string text, std::string filename
                 i++;
             }
             else if (single_type != Token::TokenType::NONE){
+                if (tokens.size() > 0){
+                    Token::TokenType t = tokens[tokens.size()-1].type;
+                    if (single_type == Token::TokenType::SUB && (
+                        t != Token::TokenType::CHAR   &&
+                        t != Token::TokenType::INT    &&
+                        t != Token::TokenType::STRING &&
+                        t != Token::TokenType::FLOAT  &&
+                        t != Token::TokenType::BOOL   &&
+                        t != Token::TokenType::PT_CLOSE))
+
+                        single_type = Token::TokenType::NEC;
+                }
                 Token::TokenType type = matchType(buffer);
                 if (buffer != ""){
                     tokens.push_back(Token(type, buffer, getline_from_str(text, l), l, c-buffer.size(), filename));

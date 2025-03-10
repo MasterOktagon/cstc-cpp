@@ -2,15 +2,18 @@
 #include <string>
 #include "../symboltable.hpp"
 #include "../../lexer/lexer.hpp"
-#include "../parser.hpp"
+//#include "../parser.hpp"
 
 #include "ast.hpp"
+
+extern AST* parse_neg(std::vector<lexer::Token>, int local, symbol::Namespace* sr, std::string expected_type="@unknown");
 
 class LiteralAST : public AST {
 
     public:
     virtual ~LiteralAST(){}
     virtual std::string get_value(){return "";}
+    bool is_const () {return true;}
 };
 
 class IntLiteralAST : public LiteralAST {
@@ -26,12 +29,16 @@ class IntLiteralAST : public LiteralAST {
     std::string get_type(){return (tsigned ? std::string("int") : std::string("uint")) + std::to_string(bits);}
     std::string get_ll_type(){return std::string("i") + std::to_string(bits);}
     std::string get_value(){return value;}
-
     std::string emit_ll(int locc=0);
     /*
         Emit llvm IR code in human-readable form
 
         [param locc] local variable name counter
+    */
+
+    //virtual llvm::Value* codegen();
+    /*
+        Emit llvm-bitcode to be compiled later
     */
 
     std::string emit_cst();
@@ -118,7 +125,7 @@ class CharLiteralAST : public LiteralAST {
         [param locc] local variable name counter
     */
 
-    std::string emit_cst(){return std::string("\"") + value + "\"";};
+    std::string emit_cst(){return value;};
     /*
         Emit C* code
     */
@@ -126,3 +133,32 @@ class CharLiteralAST : public LiteralAST {
     static AST* parse(std::vector<lexer::Token>, int local, symbol::Namespace* sr, std::string expected_type="@unknown");
     void force_type(std::string type);
 };
+
+class StringLiteralAST : public LiteralAST {
+
+    std::string value = "";
+
+    public:
+
+    StringLiteralAST(std::string value, std::vector<lexer::Token> tokens);
+    virtual ~StringLiteralAST(){}
+    std::string get_type(){return "String";}
+    std::string get_ll_type(){return "%class.String";};
+    std::string get_value();
+
+    std::string emit_ll(int locc=0){return get_value();}
+    /*
+        Emit llvm IR code in human-readable form
+
+        [param locc] local variable name counter
+    */
+
+    std::string emit_cst(){return value;};
+    /*
+        Emit C* code
+    */
+
+    static AST* parse(std::vector<lexer::Token>, int local, symbol::Namespace* sr, std::string expected_type="@unknown");
+    void force_type(std::string type);
+};
+

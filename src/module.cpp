@@ -1,5 +1,6 @@
 
 #include "module.hpp"
+#include <cstddef>
 #include <cstdlib>
 #include <filesystem>
 #include <string>
@@ -12,6 +13,7 @@
 //#include "parser/parser.hpp"
 #include "parser/ast/literal.hpp"
 #include "parser/ast/base_math.hpp"
+#include "parser/ast/var.hpp"
 #include "parser/symboltable.hpp"
 
 #define DEBUG
@@ -21,9 +23,33 @@ std::map<std::string, Module*> Module::unknown_modules = {};
 std::map<std::string, Module*> Module::known_modules = {};
 std::list<Module*> Module::load_order = {};
 
+std::string resolve_path(std::string in_path){
+    size_t pos = in_path.find("::");
+    while (pos != std::string::npos){
+        in_path.replace(pos,2,"/");
+    
+        pos = in_path.find("::");
+    }
+
+    std::filesystem::path p = std::filesystem::u8path(in_path);
+    p = p.lexically_normal();
+
+    in_path = p.string();
+    pos = in_path.find("/");
+
+    while (pos != std::string::npos){
+        in_path.replace(pos,1,"::");
+    
+        pos = in_path.find("/");
+    }
+
+    return in_path;
+}
+
 Module::Module (std::string modulename, bool direct_filepath) : symbol::Namespace() {
     dependencies = {};
     module_name = modulename;
+    module_name = resolve_path(module_name);
 
     if (!direct_filepath){
         size_t pos = modulename.find("::");
@@ -38,6 +64,10 @@ Module::Module (std::string modulename, bool direct_filepath) : symbol::Namespac
             modulename = STD_PATH + modulename.substr(5, modulename.size()-5);
             module_name = module_name.substr(pos+1, module_name.size()-pos-1);
         }
+        else {
+            modulename = std::filesystem::current_path().u8string() + "/" + modulename;
+            modulename = std::filesystem::u8path(modulename).lexically_normal().string();
+        }
     }
     else{
         size_t pos = modulename.rfind(".");
@@ -50,6 +80,7 @@ Module::Module (std::string modulename, bool direct_filepath) : symbol::Namespac
         }
         pos = module_name.rfind(".");
         module_name = module_name.substr(0, pos);
+        
     }
 
     loc = module_name;
@@ -82,13 +113,17 @@ Module::Module (std::string modulename, bool direct_filepath) : symbol::Namespac
             if (Module::unknown_modules.count(module_name) == 0){
                 Module::unknown_modules[module_name] = this;
                 std::cerr << "\e[1;31mERROR:\e[0m Module not found: \e[1m" << module_name << "\e[0m" << std::endl;
-                std::cerr << "(Maybe you forgot to add it to foreign sources?)" << std::endl;
+                //std::cerr << "(Maybe you forgot to add it to foreign sources?)" << std::endl;
             }
             return;
         }
     }
-
-    Module::known_modules[module_name] = this;
+    
+    if(direct_filepath){
+        cst_filename = std::filesystem::current_path().u8string() + "/" + cst_filename;
+        if (hst_filename != "") hst_filename = std::filesystem::current_path().u8string() + "/" + hst_filename;
+    }
+    Module::known_modules[resolve_path(module_name)] = this;
     //Module::load_order.push_back(this);
 
     tokenize();
@@ -124,7 +159,7 @@ void Module::tokenize(){
         }
         else{
             std::cerr << "\e[1;31mERROR:\e[0m File could not be opened: \e[1m" << filename << std::endl;
-            std::exit(-500);
+            std::exit(5);
         }
     }
     #ifdef DEBUG
@@ -155,7 +190,7 @@ void Module::preproc(){
 
                     for(size_t i=1; i<token_buffer.size()-1; i++){
                         if(last == lexer::Token::TokenType::SUBNS){
-                            if (token_buffer[i].type == lexer::Token::TokenType::ID){
+                            if (token_buffer[i].type == lexer::Token::TokenType::ID || token_buffer[i].type == lexer::Token::TokenType::DOTDOT){
                                 new_module_name += token_buffer[i].value;
                             }
                             else { 
@@ -163,7 +198,7 @@ void Module::preproc(){
                                 goto skip_import;
                             }
                         }
-                        else if(last == lexer::Token::TokenType::ID){
+                        else if(last == lexer::Token::TokenType::ID || last == lexer::Token::TokenType::DOTDOT){
                             if (token_buffer[i].type == lexer::Token::TokenType::SUBNS){
                                 new_module_name += token_buffer[i].value;
                             }
@@ -179,8 +214,9 @@ void Module::preproc(){
                     #ifdef DEBUG
                         std::cout << "import: " << new_module_name << std::endl;
                     #endif
-                    if(Module::known_modules.count(new_module_name) + Module::unknown_modules.count(new_module_name) == 0){
-                        d = folder + new_module_name;
+                    d = folder + new_module_name;
+                    if(Module::known_modules.count(resolve_path(d)) + Module::unknown_modules.count(resolve_path(d)) == 0){
+                        
                         dependencies.push_back(d);
                         Module* m = new Module(d, false);
                         if (m->is_known()){
@@ -226,13 +262,16 @@ bool is_less(Module* a, Module* b){
 
 void Module::parse(){
     tokens.pop_back();
-    root = math::parse(tokens, 0, this, "@unknown");
-    root->force_type("bool");
+    root = VarDeclAST::parse(tokens, 0, this);//math::parse(tokens, 0, this, "@unknown");
+    root->force_type("int32");
 
-    if(root != nullptr){
-        std::cout << root->emit_ll() << std::endl;
-    }
-    
+    #ifdef DEBUG
+        if(root != nullptr){
+            std::cout << root->emit_cst() << std::endl;
+        }
+    #endif
+
+    //TODO: check for unused variables and generate warnings if they aren't prefixed with a '_'
 }
 
 void Module::addLangFn(){

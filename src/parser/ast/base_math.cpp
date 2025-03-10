@@ -603,6 +603,7 @@ AST* math::parse(std::vector<lexer::Token> tokens, int local, symbol::Namespace*
         FloatLiteralAST::parse,
         BoolLiteralAST::parse,
         CharLiteralAST::parse,
+        StringLiteralAST::parse,
 
         AddAST::parse,
         MulAST::parse,
