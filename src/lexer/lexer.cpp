@@ -52,7 +52,7 @@ void lexer::warn(std::string name, lexer::Token t, std::string msg, int code){
         pb += "^";
     }
     pb += "\e[0m";
-
+    parser::warnc++;
     std::cerr << pb << std::endl << std::endl;
 }
 
