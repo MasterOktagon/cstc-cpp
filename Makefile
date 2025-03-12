@@ -336,6 +336,30 @@ src/parser/ast/literal.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/cstc.dir/build.make CMakeFiles/cstc.dir/src/parser/ast/literal.cpp.s
 .PHONY : src/parser/ast/literal.cpp.s
 
+src/parser/ast/type.o: src/parser/ast/type.cpp.o
+.PHONY : src/parser/ast/type.o
+
+# target to build an object file
+src/parser/ast/type.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/cstc.dir/build.make CMakeFiles/cstc.dir/src/parser/ast/type.cpp.o
+.PHONY : src/parser/ast/type.cpp.o
+
+src/parser/ast/type.i: src/parser/ast/type.cpp.i
+.PHONY : src/parser/ast/type.i
+
+# target to preprocess a source file
+src/parser/ast/type.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/cstc.dir/build.make CMakeFiles/cstc.dir/src/parser/ast/type.cpp.i
+.PHONY : src/parser/ast/type.cpp.i
+
+src/parser/ast/type.s: src/parser/ast/type.cpp.s
+.PHONY : src/parser/ast/type.s
+
+# target to generate assembly for a file
+src/parser/ast/type.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/cstc.dir/build.make CMakeFiles/cstc.dir/src/parser/ast/type.cpp.s
+.PHONY : src/parser/ast/type.cpp.s
+
 src/parser/ast/var.o: src/parser/ast/var.cpp.o
 .PHONY : src/parser/ast/var.o
 
@@ -441,6 +465,9 @@ help:
 	@echo "... src/parser/ast/literal.o"
 	@echo "... src/parser/ast/literal.i"
 	@echo "... src/parser/ast/literal.s"
+	@echo "... src/parser/ast/type.o"
+	@echo "... src/parser/ast/type.i"
+	@echo "... src/parser/ast/type.s"
 	@echo "... src/parser/ast/var.o"
 	@echo "... src/parser/ast/var.i"
 	@echo "... src/parser/ast/var.s"

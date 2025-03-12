@@ -109,7 +109,6 @@ lexer::Token::TokenType getSingleToken(char c){
     */
 
     switch (c) {
-        default:   return lexer::Token::TokenType::NONE;
         case ';':  return lexer::Token::TokenType::END_CMD;
 
         case '=':  return lexer::Token::TokenType::SET;
@@ -140,6 +139,7 @@ lexer::Token::TokenType getSingleToken(char c){
         case '}':  return lexer::Token::TokenType::BLOCK_CLOSE;
         case '[':  return lexer::Token::TokenType::INDEX_OPEN;
         case ']':  return lexer::Token::TokenType::INDEX_CLOSE;
+        default:   return lexer::Token::TokenType::NONE;
     }
 }
 
@@ -286,6 +286,7 @@ std::vector<lexer::Token> lexer::tokenize(std::string text, std::string filename
                     tokens.push_back(Token(Token::TokenType::STRING, buffer + text[i], getline_from_str(text, l-bool(text[i]=='\n')), l, c-buffer.size(), filename));
                     buffer = "";
                     i++;
+                    continue;
                 }
             }
             if (text[i] == '\'' && text[i-1] != '\\' && !in_string){
@@ -294,6 +295,7 @@ std::vector<lexer::Token> lexer::tokenize(std::string text, std::string filename
                     tokens.push_back(Token(Token::TokenType::CHAR, buffer + text[i], getline_from_str(text, l-bool(text[i]=='\n')), l, c-buffer.size(), filename));
                     buffer = "";
                     i++;
+                    continue;
                 }
             }
             if (in_string || in_char){
@@ -325,6 +327,7 @@ std::vector<lexer::Token> lexer::tokenize(std::string text, std::string filename
                         t != Token::TokenType::STRING &&
                         t != Token::TokenType::FLOAT  &&
                         t != Token::TokenType::BOOL   &&
+                        t != Token::TokenType::ID     &&
                         t != Token::TokenType::PT_CLOSE))
 
                         single_type = Token::TokenType::NEC;

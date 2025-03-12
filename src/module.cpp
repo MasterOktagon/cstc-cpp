@@ -262,7 +262,7 @@ bool is_less(Module* a, Module* b){
 
 void Module::parse(){
     tokens.pop_back();
-    root = VarDeclAST::parse(tokens, 0, this);//math::parse(tokens, 0, this, "@unknown");
+    root = VarInitlAST::parse(tokens, 0, this);//math::parse(tokens, 0, this, "@unknown");
     root->force_type("int32");
 
     #ifdef DEBUG

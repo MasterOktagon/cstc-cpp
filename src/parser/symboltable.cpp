@@ -1,5 +1,6 @@
 
 #include "symboltable.hpp"
+#include <cstddef>
 #include <llvm-14/llvm/IR/LLVMContext.h>
 #include <string>
 #include <map>
@@ -33,12 +34,20 @@ std::string symbol::Var::find (std::string name){
 
 std::string symbol::Func::find (std::string name){
     //std::cout << "FOUND: " <<  loc << std::endl;
-    std::string d = std::string("Signal<") + type;
+    std::string d = std::string("[") + type + "<-";
     for( std::string p : params){
         d += "," + p;
     }
-    d += ">";
+    d += "]";
     return d;
+}
+
+symbol::SymbolReference* symbol::Func::find_symbol(std::string name){
+    return this;
+}
+
+symbol::SymbolReference* symbol::Var::find_symbol(std::string name){
+    return this;
 }
 
 std::vector<symbol::Func*> symbol::Func::find_fn (std::string name){
@@ -60,6 +69,21 @@ std::string symbol::Namespace::find (std::string name){
         return table[name][0]->find("");
     }
     return "";
+}
+
+symbol::SymbolReference* symbol::Namespace::find_symbol (std::string name){
+    //std::cout << "FIND: " <<  name << " in " << loc << std::endl;
+    if(name == "") return this;
+    size_t pos = name.find("::");
+    if (pos != std::string::npos){
+        if (table.count(name.substr(0, pos)) > 0) {
+            return table[name.substr(0, pos)][0]->find_symbol(name.substr(pos+2, name.size()));
+        }
+    }
+    else if (table.count(name) > 0){
+        return table[name][0]->find_symbol("");
+    }
+    return nullptr;
 }
 
 std::vector<symbol::Func*> symbol::Namespace::find_fn (std::string name){

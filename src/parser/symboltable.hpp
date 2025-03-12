@@ -32,6 +32,7 @@ namespace symbol {
         public:
         virtual std::string find (std::string name) = 0;
         virtual std::vector<Func*> find_fn(std::string name) = 0;
+        virtual SymbolReference* find_symbol(std::string name) = 0;
         virtual llvm::LLVMContext* get_context(){return nullptr;}
 
         SymbolReference(){}
@@ -51,6 +52,7 @@ namespace symbol {
 
         virtual std::string find (std::string name);
         virtual std::vector<Func*> find_fn (std::string name);
+        virtual SymbolReference* find_symbol(std::string name);
         void add(std::string, SymbolReference* sr);
         //virtual llvm::LLVMContext* get_context(){return context;}
 
@@ -69,6 +71,7 @@ namespace symbol {
         std::vector<Func*> find_fn (std::string name){return {};}
 
         Var(std::string l, std::string t, bool s=true){loc = l; type = t; on_stack = s;}
+        SymbolReference* find_symbol(std::string name);
         ~Var(){};
 
     };
@@ -84,6 +87,7 @@ namespace symbol {
         std::vector<Func*> find_fn (std::string name);
 
         Func(std::string l, std::string t, std::vector<std::string> p){loc = l; type = t; params = p;}
+        SymbolReference* find_symbol(std::string name);
         ~Func(){};
 
         std::string get_sig();

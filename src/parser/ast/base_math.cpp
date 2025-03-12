@@ -8,6 +8,7 @@
 #include <iostream>
 #include <regex>
 #include "../parser.hpp"
+#include "var.hpp"
 
 #define DEBUG
 // AddAST
@@ -598,12 +599,14 @@ AST* math::parse_pt(std::vector<lexer::Token> tokens, int local, symbol::Namespa
 
 
 AST* math::parse(std::vector<lexer::Token> tokens, int local, symbol::Namespace* sr, std::string expected_type){
+    std::cout << "math::parse" << std::endl;
     return parser::parseOneOf(tokens, {
         IntLiteralAST::parse,
         FloatLiteralAST::parse,
         BoolLiteralAST::parse,
         CharLiteralAST::parse,
         StringLiteralAST::parse,
+        VarAccesAST::parse,
 
         AddAST::parse,
         MulAST::parse,

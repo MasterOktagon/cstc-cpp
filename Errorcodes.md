@@ -31,7 +31,10 @@ This could be due to a missing file parameter or a multiple of them since `cstc`
 |E17     | Type mismatch       | The found type does not match the expected type |
 |E18     | Unknown operator    | The desired Operator is not implemented for given types |
 |E19     | Unknown Type        | A Type of this name was not found. Make sure you have imported the module and you are using the right namespace|
+|E20     | Unknown Variable    | A variable of this name was not found in this scope |
 |E25     | Variable already defined | A variable of this name is already defined in this scope |
+|E26     | Unsupported name    | A Variable was named after a Type/scope. This is not supported |
+|E30     | Expected Symbol     | The compiler expected a variable or namespace |
 |E45     | Sign mismatch       | The found type does imply a sign that does not fit into the expected type |
 
 
