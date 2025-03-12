@@ -4,3 +4,4 @@ CMake*
 .vscode/
 bin/
 !CMakeLists.txt
+compile_commands.json
