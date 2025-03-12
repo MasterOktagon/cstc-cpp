@@ -33,6 +33,7 @@ void lexer::error(std::string name, lexer::Token t, std::string msg, int code){
     pb += "\e[0m";
 
     std::cerr << pb << std::endl << std::endl;
+    parser::errc++;
     if (parser::one_error) std::exit(1);
 }
 
@@ -246,6 +247,18 @@ std::vector<lexer::Token> lexer::tokenize(std::string text, std::string filename
         }
         next = i+1 < text.size()? text[i+1] : ' ';
 
+        if (text[i] == '<' && text.size() >= i+12 && text.substr(i, 13) == "<<<<<<< HEAD\n"){
+            lexer::error("Unresolved merge conflict", lexer::Token (lexer::Token::TokenType::NONE, "<<<<<<<< HEAD", getline_from_str(text, l), l, c, filename), "There is an unresolved git merge conflict in this file.\nTry\n \e[36m$\e[0m git mergetool\nfor help", -3);
+            while (!std::regex_match(getline_from_str(text, l), std::regex(">>>>>>> .*"))){
+                i++; c++;
+                if (i >= text.size()) return {};
+                if(text[i] == '\n') l++;
+            }
+            while (i+1 < text.size() && text[i+1] != '\n') {i++; c++;}
+            i++;
+            
+        }
+
         if (ml_comment_level < 1 && next == '/' && text[i] == '/'){
             in_inline_comment = true;
             Token::TokenType type = matchType(buffer);
@@ -275,7 +288,6 @@ std::vector<lexer::Token> lexer::tokenize(std::string text, std::string filename
             i+=2;
             continue;
         }
-
         Token::TokenType single_type = getSingleToken(text[i]);
         Token::TokenType dual_type = next != ' ' ? getDoubleToken(std::string("") + text[i] + next) : Token::TokenType::NONE;
 
