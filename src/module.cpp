@@ -4,6 +4,7 @@
 #include <cstdlib>
 #include <filesystem>
 #include <string>
+#include <utility>
 #include <vector>
 #include <iostream>
 #include <cstdint>
@@ -14,6 +15,7 @@
 #include "parser/ast/literal.hpp"
 #include "parser/ast/base_math.hpp"
 #include "parser/ast/var.hpp"
+#include "parser/parser.hpp"
 #include "parser/symboltable.hpp"
 
 #define DEBUG
@@ -271,7 +273,15 @@ void Module::parse(){
         }
     #endif
 
-    //TODO: check for unused variables and generate warnings if they aren't prefixed with a '_'
+    for (std::pair<std::string, std::vector<symbol::SymbolReference*>> el : table){
+        for (symbol::SymbolReference* p : el.second){
+            if (
+                p == dynamic_cast<symbol::Var*>(p) &&
+                !((symbol::Var*) p)->used &&
+                p->loc[0] != '_'
+            ) parser::warn("Unused variable", ((symbol::Var*) p)->declared, "This variable was declared but never used.\nIf this was intended, prefix it with an '_'", 5);
+        }
+    }
 }
 
 void Module::addLangFn(){

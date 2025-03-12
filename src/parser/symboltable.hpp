@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <map>
+#include "../lexer/lexer.hpp"
 
 template<typename T, typename S>
 using MultiMap = std::map<T, std::vector<S>>;
@@ -26,10 +27,8 @@ namespace symbol {
         friend class Namespace;
         friend class Module;
 
-        protected:
-        std::string loc = "";
-
         public:
+        std::string loc = "";
         virtual std::string find (std::string name) = 0;
         virtual std::vector<Func*> find_fn(std::string name) = 0;
         virtual SymbolReference* find_symbol(std::string name) = 0;
@@ -67,10 +66,11 @@ namespace symbol {
 
         public:
         bool used = false;
+        lexer::Token declared;
         std::string find (std::string name);
         std::vector<Func*> find_fn (std::string name){return {};}
 
-        Var(std::string l, std::string t, bool s=true){loc = l; type = t; on_stack = s;}
+        Var(std::string l, std::string t, lexer::Token tok, bool s=true){loc = l; type = t; on_stack = s; declared = tok;}
         SymbolReference* find_symbol(std::string name);
         ~Var(){};
 

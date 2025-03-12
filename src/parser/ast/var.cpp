@@ -38,7 +38,7 @@ AST* VarDeclAST::parse(std::vector<lexer::Token> tokens, int local, symbol::Name
                     parser::warn("Wrong casing", tokens[tokens.size()-2], "Variable name should be snake_case", 16);
                 }
 
-                sr->add(name, new symbol::Var(name, type->get_type()));
+                sr->add(name, new symbol::Var(name, type->get_type(), tokens[tokens.size()-2]));
                 return new VarDeclAST(name, type);
             }
         }
@@ -82,11 +82,11 @@ AST* VarInitlAST::parse(std::vector<lexer::Token> tokens, int local, symbol::Nam
                 return new AST;
             }
             if (!parser::is_snake_case(name)){
-                parser::warn("Wrong casing", tokens[tokens.size()-2], "Variable name should be snake_case", 16);
+                parser::warn("Wrong casing", tokens[split-1], "Variable name should be snake_case", 16);
             }
             expr->force_type(type->get_type());
 
-            sr->add(name, new symbol::Var(name, type->get_type()));
+            sr->add(name, new symbol::Var(name, type->get_type(), tokens[split-1]));
             return new VarInitlAST(name, type, expr);
         }
     }
