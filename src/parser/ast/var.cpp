@@ -121,7 +121,9 @@ AST* VarAccesAST::parse(std::vector<lexer::Token> tokens, int local, symbol::Nam
         parser::error("Unknown variable", tokens[0], tokens[tokens.size()-1], "A variable of this name was not found in this scope", 20);
         return new AST;
     }
-    return new VarAccesAST(name, sr->find_symbol(name));
+    symbol::SymbolReference* p = sr->find_symbol(name);
+    if (p == dynamic_cast<symbol::Var*>(p)) ((symbol::Var*) p)->used = true;
+    return new VarAccesAST(name, p);
 }
 
 void VarAccesAST::force_type(std::string type){
