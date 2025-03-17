@@ -9,6 +9,11 @@
 #include "type.hpp"
 #include <iostream>
 
+AST* parseStatement(std::vector<lexer::Token> tokens, int local, symbol::Namespace* sr, std::string expected_type){
+    if (tokens.size() == 0 || tokens[tokens.size()-1].type != lexer::Token::TokenType::END_CMD) return nullptr;
+    return math::parse(parser::subvector(tokens, 0,1,tokens.size()-1), local, sr, expected_type);
+}
+
 VarDeclAST::VarDeclAST(std::string name, AST* type){
     this->name = name;
     this->type = type;
@@ -57,7 +62,7 @@ AST* VarInitlAST::parse(std::vector<lexer::Token> tokens, int local, symbol::Nam
     if (tokens[tokens.size()-1].type == lexer::Token::TokenType::END_CMD){
         std::string name = "";
         int split = parser::rsplitStack(tokens, {lexer::Token::TokenType::SET}, local);
-        if (tokens[split-1].type == lexer::Token::TokenType::ID){
+        if (tokens[split-1].type == lexer::Token::TokenType::ID && split > 1){
             name  = tokens[split-1].value;
             AST* type = Type::parse(parser::subvector(tokens, 0,1,split-1), local, sr);
             if (type == nullptr){
@@ -116,6 +121,7 @@ AST* VarAccesAST::parse(std::vector<lexer::Token> tokens, int local, symbol::Nam
         else return nullptr;
         last = t.type;
     }
+    if (last == lexer::Token::TokenType::SUBNS) parser::error("Expected Symbol", tokens[tokens.size()-1], "module name or variable name expected", 30);
     std::string type = sr->find(name);
     if (type == ""){
         parser::error("Unknown variable", tokens[0], tokens[tokens.size()-1], "A variable of this name was not found in this scope", 20);
@@ -132,3 +138,61 @@ void VarAccesAST::force_type(std::string type){
     }
 }
 
+
+
+
+VarSetAST::VarSetAST(std::string name, symbol::SymbolReference* sr, AST* expr){
+    this->name = name;
+    this->var  = sr;
+    this->expr = expr;
+}
+
+AST* VarSetAST::parse(std::vector<lexer::Token> tokens, int local, symbol::Namespace* sr, std::string expected_type){
+    if (tokens.size() == 0) return nullptr;
+    std::string name = "";
+    lexer::Token::TokenType last = lexer::Token::TokenType::SUBNS;
+    int split = parser::rsplitStack(tokens, {lexer::Token::TokenType::SET}, local);
+    if (split == 0){
+        parser::error("Expected Expression", tokens[tokens.size()-1], "Expected an expression after '='", 31);
+        return new AST;
+    }
+    if (split == tokens.size()) return nullptr;
+    auto varname = parser::subvector(tokens, 0,1,split);
+    if (varname[0].type == lexer::Token::TokenType::SUBNS){
+        parser::error("Expected Symbol", tokens[0], "module name or variable name expected", 30);
+        return new AST;
+    }
+    for (lexer::Token t : varname){
+        if (last == lexer::Token::TokenType::SUBNS && t.type == lexer::Token::TokenType::ID){
+            name += t.value;
+        }
+        else if (last == lexer::Token::TokenType::ID && t.type == lexer::Token::TokenType::SUBNS){
+            name += "::";
+        }
+        else return nullptr;
+        last = t.type;
+    }
+    if (last == lexer::Token::TokenType::SUBNS) parser::error("Expected Symbol", varname[varname.size()-1], "module name or variable name expected", 30);
+    
+    AST* expr = math::parse(parser::subvector(tokens, split+1,1,tokens.size()), local, sr);
+    if (expr == nullptr){
+        parser::error("Expected Expression", tokens[tokens.size()-1], "Expected a valid expression after '='", 31);
+        return new AST;
+    }
+    
+    std::string type = sr->find(name);
+    if (type == ""){
+        parser::error("Unknown variable", tokens[0], tokens[tokens.size()-1], "A variable of this name was not found in this scope", 20);
+        return new AST;
+    }
+    expr->force_type(type);
+    symbol::SymbolReference* p = sr->find_symbol(name);
+    return new VarSetAST(name, p, expr);
+}
+
+void VarSetAST::force_type(std::string type){
+    if (var->find("") != type){
+        if (var == dynamic_cast<symbol::Var*>(var)) ((symbol::Var*) var)->used = true;
+        parser::error("Type mismatch", tokens[0], tokens[tokens.size()-1] ,std::string("expected a \e[1m") + type + "\e[0m, got a variable of type " + var->find(""), 17, "Caused by");
+    }
+}

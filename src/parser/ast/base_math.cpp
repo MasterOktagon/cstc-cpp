@@ -728,6 +728,7 @@ AST* math::parse(std::vector<lexer::Token> tokens, int local, symbol::Namespace*
         CharLiteralAST::parse,
         StringLiteralAST::parse,
         VarAccesAST::parse,
+        VarSetAST::parse,
 
         AddAST::parse,
         MulAST::parse,
