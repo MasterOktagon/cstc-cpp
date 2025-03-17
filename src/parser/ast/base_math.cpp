@@ -398,6 +398,78 @@ void ModAST::force_type(std::string type){
 
 }
 
+// PowAST
+
+PowAST::PowAST(AST* left, AST* right, std::vector<lexer::Token> tokens){
+    this->left = left;
+    this->right = right;
+    this->tokens = tokens;
+}
+
+PowAST::~PowAST(){
+    delete left;
+    delete right;
+}
+std::string PowAST::get_ll_type(){
+    return left->get_ll_type();
+}
+
+std::string PowAST::emit_ll(int locc){
+    return "";
+}
+
+std::string PowAST::emit_cst(){
+    return std::string("(") + left->emit_cst() + " ** " + right->emit_cst() + ")";
+}
+
+void PowAST::force_type(std::string type){
+    std::regex i("u?int(8|16|32|64|128)");
+    std::regex f("float(16|32|64|128)");
+    bool int_required = std::regex_match(type, i);
+    bool float_required = std::regex_match(type, f);
+    if (std::regex_match(left->get_type(), i) && int_required){
+        left->force_type(type);
+        right->force_type(type);
+    }
+    if (std::regex_match(left->get_type(), i) && float_required){
+        left->force_type(type);
+        right->force_type(type);
+    }
+
+    std::string ret = parser::hasOp(left->get_type(), right->get_type(), lexer::Token::TokenType::POW);
+    if (ret != ""){
+        if (ret != type) parser::error("Mismatiching types", tokens[0], tokens[tokens.size()-1], left->get_type() + "::operator ** (" + right->get_type() + ") yields " + ret + " (expected \e[1m" + type + "\e[0m)", 18);
+    }
+    else parser::error("Unknown operator", tokens[0], tokens[tokens.size()-1], left->get_type() + "::operator ** (" + right->get_type() + ") is not implemented.", 18);
+
+}
+
+AST* PowAST::parse(std::vector<lexer::Token> tokens, int local, symbol::Namespace* sr, std::string expected_type){
+    if (tokens.size() < 1) return nullptr;
+    auto t = tokens;
+    size_t split = parser::splitStack(tokens, {lexer::Token::TokenType::POW}, local);
+    if (tokens.size() > 2 && split != 0 && split < tokens.size()){
+        #ifdef DEBUG
+            std::cout << "PowAST::parse:\tsplit:\t" << split << std::endl;
+        #endif
+        lexer::Token op = tokens[split];
+        AST* left = math::parse(parser::subvector(tokens, 0,1,split), local, sr, expected_type);
+        if (left == nullptr){
+            parser::error("Expression expected", tokens[0], tokens[split-1], std::string("Expected espression of type \e[1m") + expected_type + "\e[0m", 111);
+            return new AST();
+        }
+        AST* right = math::parse(parser::subvector(tokens, split+1,1,tokens.size()), local, sr, expected_type);
+        if (right == nullptr){
+            parser::error("Expression expected", tokens[split], tokens[tokens.size()-1], std::string("Expected espression of type \e[1m") + expected_type + "\e[0m", 111);
+            delete left;
+            return new AST();
+        }
+        return new PowAST(left, right, t);
+    }
+
+    return nullptr;
+}
+
 // LorAST
 
 LorAST::LorAST(AST* left, AST* right, std::vector<lexer::Token> tokens){
