@@ -12,6 +12,7 @@
 #include "lexer/lexer.hpp"
 #include "parser/ast/ast.hpp"
 //#include "parser/parser.hpp"
+#include "parser/ast/flow.hpp"
 #include "parser/ast/literal.hpp"
 #include "parser/ast/base_math.hpp"
 #include "parser/ast/var.hpp"
@@ -264,15 +265,17 @@ bool is_less(Module* a, Module* b){
 
 void Module::parse(){
     tokens.pop_back();
-    root = VarInitlAST::parse(tokens, 0, this);//math::parse(tokens, 0, this, "@unknown");
-    root->force_type("int32");
+    root = SubBlockAST::parse(tokens, 0, this);
+    if (root != nullptr) root->force_type("int32");
 
     #ifdef DEBUG
+        std::cout << module_name << " parsed!" << std::endl;
         if(root != nullptr){
             std::cout << root->emit_cst() << std::endl;
         }
     #endif
 
+    // find unused vars
     for (std::pair<std::string, std::vector<symbol::SymbolReference*>> el : table){
         for (symbol::SymbolReference* p : el.second){
             if (
