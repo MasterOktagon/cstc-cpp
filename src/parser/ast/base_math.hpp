@@ -10,7 +10,13 @@ namespace math {
 
 }
 
-class AddAST : public AST {
+class ExpressionAST : public AST {
+    public:
+    ExpressionAST(){};
+    virtual ~ExpressionAST(){};
+};
+
+class AddAST : public ExpressionAST {
     AST* left;
     AST* right;
 
@@ -38,7 +44,7 @@ class AddAST : public AST {
     void force_type(std::string type);
 };
 
-class SubAST : public AST {
+class SubAST : public ExpressionAST {
     AST* left;
     AST* right;
 
@@ -64,7 +70,7 @@ class SubAST : public AST {
     void force_type(std::string type);
 };
 
-class MulAST : public AST {
+class MulAST : public ExpressionAST {
     AST* left;
     AST* right;
 
@@ -91,7 +97,7 @@ class MulAST : public AST {
     void force_type(std::string type);
 };
 
-class DivAST : public AST {
+class DivAST : public ExpressionAST {
     AST* left;
     AST* right;
 
@@ -117,7 +123,7 @@ class DivAST : public AST {
     void force_type(std::string type);
 };
 
-class ModAST : public AST {
+class ModAST : public ExpressionAST {
     AST* left;
     AST* right;
 
@@ -197,7 +203,7 @@ class LorAST : public ExpressionAST {
     void force_type(std::string type);
 };
 
-class LandAST : public AST {
+class LandAST : public ExpressionAST {
     AST* left;
     AST* right;
 
