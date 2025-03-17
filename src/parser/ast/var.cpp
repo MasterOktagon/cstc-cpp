@@ -103,7 +103,7 @@ AST* VarAccesAST::parse(std::vector<lexer::Token> tokens, int local, symbol::Nam
     std::string name = "";
     lexer::Token::TokenType last = lexer::Token::TokenType::SUBNS;
     if (tokens[0].type == lexer::Token::TokenType::SUBNS){
-        parser::error("Expected Symbol", tokens[0], "module name expected", 30);
+        parser::error("Expected Symbol", tokens[0], "module name or variable name expected", 30);
         return new AST;
     }
     for (lexer::Token t : tokens){
