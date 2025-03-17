@@ -35,6 +35,7 @@ This could be due to a missing file parameter or a multiple of them since `cstc`
 |E25     | Variable already defined | A variable of this name is already defined in this scope |
 |E26     | Unsupported name    | A Variable was named after a Type/scope. This is not supported |
 |E30     | Expected Symbol     | The compiler expected a variable or namespace |
+|E31     | Expected Expression | The compiler expected a valid epression |
 |E45     | Sign mismatch       | The found type does imply a sign that does not fit into the expected type |
 
 
