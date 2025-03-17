@@ -143,7 +143,34 @@ class ModAST : public AST {
     void force_type(std::string type);
 };
 
-class LorAST : public AST {
+class PowAST : public ExpressionAST {
+    AST* left;
+    AST* right;
+
+    public:
+    PowAST(AST* left, AST* right, std::vector<lexer::Token> tokens);
+    virtual ~PowAST();
+    std::string get_type(){
+        return max_prec_type(left->get_type(), right->get_type());
+    }
+    std::string get_ll_type();
+
+    std::string emit_ll(int locc=0);
+    /*
+        Emit llvm IR code in human-readable form
+
+        [param locc] local variable name counter
+    */
+
+    std::string emit_cst();
+    /*
+        Emit C* code
+    */
+    void force_type(std::string type);
+    static AST* parse(std::vector<lexer::Token>, int local, symbol::Namespace* sr, std::string expected_type="@unknown");
+};
+
+class LorAST : public ExpressionAST {
     AST* left;
     AST* right;
 
@@ -197,7 +224,32 @@ class LandAST : public AST {
     void force_type(std::string type);
 };
 
-class AddrOfAST : public AST {
+class CastAST : public ExpressionAST {
+    AST* from;
+    AST* type;
+
+    public:
+    CastAST(AST* from, AST* type, std::vector<lexer::Token> tokens);
+    virtual ~CastAST(){delete from; delete type;}
+    std::string get_type(){ return type->get_type(); }
+    std::string get_ll_type(){return type->get_ll_type();}
+
+    std::string emit_ll(int locc=0){return "";}
+    /*
+        Emit llvm IR code in human-readable form
+
+        [param locc] local variable name counter
+    */
+
+    std::string emit_cst();
+    /*
+        Emit C* code
+    */
+    static AST* parse(std::vector<lexer::Token>, int local, symbol::Namespace* sr, std::string expected_type="@unknown");
+    void force_type(std::string type);
+};
+
+class AddrOfAST : public ExpressionAST {
     AST* of;
 
     public:

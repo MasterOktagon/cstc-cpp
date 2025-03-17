@@ -8,6 +8,7 @@
 #include <iostream>
 #include <regex>
 #include "../parser.hpp"
+#include "type.hpp"
 #include "var.hpp"
 
 #define DEBUG
@@ -669,6 +670,54 @@ AST* math::parse_pt(std::vector<lexer::Token> tokens, int local, symbol::Namespa
     return nullptr;
 }
 
+CastAST::CastAST(AST* from, AST* type, std::vector<lexer::Token> tokens){
+    this->from = from;
+    this->type = type;
+    this->tokens = tokens;
+}
+
+AST* CastAST::parse(std::vector<lexer::Token> tokens, int local, symbol::Namespace* sr, std::string expected_type){
+    if (tokens.size() < 3) return nullptr;
+    int split = parser::rsplitStack(tokens, {lexer::Token::TokenType::AS}, local);
+    #ifdef DEBUG
+        std::cout << "CastAST::parse:\tsplit:\t" << split << std::endl;
+    #endif
+    if (split == (int) tokens.size()-1){
+        parser::error("Expected type", tokens[tokens.size()-1], "Expected a type after 'as'", 25);
+        return new AST;
+    }
+    if (split == (int) tokens.size()) return nullptr;
+    if (split == 0) {
+        parser::error("Expression expected", tokens[0], "Expected a valid expression", 31);
+        return new AST();
+    }
+    auto buf = parser::subvector(tokens, split+1,1,tokens.size());
+    AST* type = Type::parse(buf, local, sr);
+    if (type == nullptr){
+        parser::error("Expected type", buf[0], buf[buf.size()-1], "Expected a type after 'as'", 25);
+        return new AST;
+    }
+
+    buf = parser::subvector(tokens, 0,1,split);
+    AST* expr = math::parse(buf, local, sr);
+    if (expr == nullptr){
+        parser::error("Expression expected", tokens[0], "Expected a valid expression", 31);
+        return new AST();
+    }
+
+    return new CastAST(expr, type, tokens);
+}
+
+std::string CastAST::emit_cst(){
+    return from->emit_cst() + " as " + type->emit_cst();
+}
+
+void CastAST::force_type(std::string t){
+    if (get_type() != t){
+        parser::error("Type mismatch", tokens[0], tokens[tokens.size()-1] ,std::string("expected a \e[1m") + t + "\e[0m, got a variable cast returning " + get_type(), 17, "Caused by");
+    }
+}
+
 
 AST* math::parse(std::vector<lexer::Token> tokens, int local, symbol::Namespace* sr, std::string expected_type){
     std::cout << "math::parse" << std::endl;
@@ -682,9 +731,11 @@ AST* math::parse(std::vector<lexer::Token> tokens, int local, symbol::Namespace*
 
         AddAST::parse,
         MulAST::parse,
+        PowAST::parse,
         LandAST::parse,
         LorAST::parse,
         
+        CastAST::parse,
         parse_pt}, local, sr, expected_type);
 }
 
