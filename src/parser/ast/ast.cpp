@@ -22,3 +22,19 @@ std::string intab(std::string i){
     }
     return std::string("\t") + i;
 }
+
+std::string insert(std::string val, std::string target){
+    size_t pos = target.find_first_of("{}");
+    if (pos != std::string::npos){
+        target.replace(pos, 2, val);
+    }
+    return target;
+}
+
+std::string rinsert(std::string val, std::string target){
+    size_t pos = target.rfind("{}");
+    if (pos != std::string::npos){
+        target.replace(pos, 2, val);
+    }
+    return target;
+}

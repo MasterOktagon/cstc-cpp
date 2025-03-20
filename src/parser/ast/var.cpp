@@ -6,8 +6,36 @@
 #include <string>
 #include "var.hpp"
 #include "base_math.hpp"
+#include "literal.hpp"
 #include "type.hpp"
 #include <iostream>
+
+std::string parse_name(std::vector<lexer::Token> tokens){
+    if (tokens.size() == 0) return "";
+    std::string name = "";
+    lexer::Token::TokenType last = lexer::Token::TokenType::SUBNS;
+    //std::cout << tokens.size() << std::endl;
+    
+    if (tokens[0].type == lexer::Token::TokenType::SUBNS){
+        parser::error("Expected Symbol", tokens[0], "module name or variable name expected", 30);
+        return "";
+    }
+    for (lexer::Token t : tokens){
+        if (last == lexer::Token::TokenType::SUBNS && t.type == lexer::Token::TokenType::ID){
+            name += t.value;
+        }
+        else if (last == lexer::Token::TokenType::ID && t.type == lexer::Token::TokenType::SUBNS){
+            name += "::";
+        }
+        else return "null";
+        last = t.type;
+    }
+    if (last == lexer::Token::TokenType::SUBNS){
+        parser::error("Expected Symbol", tokens[tokens.size()-1], "module name or variable name expected", 30);
+        return "";
+    }
+    return name; 
+}
 
 AST* parseStatement(std::vector<lexer::Token> tokens, int local, symbol::Namespace* sr, std::string expected_type){
     if (tokens.size() == 0 || tokens[tokens.size()-1].type != lexer::Token::TokenType::END_CMD) return nullptr;
@@ -50,6 +78,14 @@ AST* VarDeclAST::parse(std::vector<lexer::Token> tokens, int local, symbol::Name
     }
     return nullptr;
 }
+
+std::string VarDeclAST::emit_ll(int*, std::string){
+    return std::string("%") + name + " = alloca " + type->get_ll_type() + "\n";
+}
+
+
+
+
 
 VarInitlAST::VarInitlAST(std::string name, AST* type, AST* expr){
     this->name = name;
@@ -98,6 +134,17 @@ AST* VarInitlAST::parse(std::vector<lexer::Token> tokens, int local, symbol::Nam
     return nullptr;
 }
 
+std::string VarInitlAST::emit_ll(int* locc, std::string){
+    std::string s = std::string("%") + name + " = alloca " + type->get_ll_type() + ", align 8\n" +
+        "store " + expression->get_ll_type() + " {}, " + type->get_ll_type() + "* " + std::string("%") + name + ", align 8\n" ;
+    std::string l = expression->emit_ll(locc, s);
+    return l;
+}
+
+
+
+
+
 VarAccesAST::VarAccesAST(std::string name, symbol::SymbolReference* sr){
     this->name = name;
     this->var = sr;
@@ -105,23 +152,9 @@ VarAccesAST::VarAccesAST(std::string name, symbol::SymbolReference* sr){
 
 AST* VarAccesAST::parse(std::vector<lexer::Token> tokens, int local, symbol::Namespace* sr, std::string expected_type){
     if (tokens.size() == 0) return nullptr;
-    std::string name = "";
-    lexer::Token::TokenType last = lexer::Token::TokenType::SUBNS;
-    if (tokens[0].type == lexer::Token::TokenType::SUBNS){
-        parser::error("Expected Symbol", tokens[0], "module name or variable name expected", 30);
-        return new AST;
-    }
-    for (lexer::Token t : tokens){
-        if (last == lexer::Token::TokenType::SUBNS && t.type == lexer::Token::TokenType::ID){
-            name += t.value;
-        }
-        else if (last == lexer::Token::TokenType::ID && t.type == lexer::Token::TokenType::SUBNS){
-            name += "::";
-        }
-        else return nullptr;
-        last = t.type;
-    }
-    if (last == lexer::Token::TokenType::SUBNS) parser::error("Expected Symbol", tokens[tokens.size()-1], "module name or variable name expected", 30);
+    std::string name = parse_name(tokens);
+    if (name == "") return new AST;
+    if (name == "null") return nullptr;
     std::string type = sr->find(name);
     if (type == ""){
         parser::error("Unknown variable", tokens[0], tokens[tokens.size()-1], "A variable of this name was not found in this scope", 20);
@@ -137,6 +170,14 @@ void VarAccesAST::force_type(std::string type){
         parser::error("Type mismatch", tokens[0], tokens[tokens.size()-1] ,std::string("expected a \e[1m") + type + "\e[0m, got a variable of type " + var->find(""), 17, "Caused by");
     }
 }
+
+std::string VarAccesAST::emit_ll(int* locc, std::string inp){
+    std::string s = std::string("%") + std::to_string(++(*locc)) + " = load " + parser::ll_type(var->find("")) + ", " + parser::ll_type(var->find("")) + "* %" + name + ", align 8\n";
+    inp = rinsert("%" + std::to_string(*locc), inp);
+    return s + inp;
+}
+
+
 
 
 
@@ -195,4 +236,13 @@ void VarSetAST::force_type(std::string type){
         if (var == dynamic_cast<symbol::Var*>(var)) ((symbol::Var*) var)->used = true;
         parser::error("Type mismatch", tokens[0], tokens[tokens.size()-1] ,std::string("expected a \e[1m") + type + "\e[0m, got a variable of type " + var->find(""), 17, "Caused by");
     }
+}
+
+std::string VarSetAST::emit_ll(int* locc, std::string inp){
+    std::string s = std::string("store ") + parser::ll_type(var->find("")) + " {}, " + parser::ll_type(var->find("")) + "* %" + name + "\n";
+    std::string l = expr->emit_ll(locc, s);
+    if (expr != dynamic_cast<LiteralAST*>(expr)) inp = rinsert(std::string("%") + std::to_string(*locc), inp);
+    else inp = expr->emit_ll(locc, inp);
+
+    return l + inp;
 }

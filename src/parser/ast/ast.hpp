@@ -12,7 +12,8 @@ class AST {
     AST(){}
     virtual bool is_const(){return false;} // do constant folding or not
     virtual ~AST(){}
-    virtual std::string emit_ll(int locc=0){return "";}
+    virtual int nodeSize(){return 1;} // how many nodes to to do
+    virtual std::string emit_ll(int*, std::string){return "";}
     /*
         Emit llvm IR code in human-readable form
 
@@ -30,7 +31,7 @@ class AST {
     
     virtual std::string get_type(){return "@unknown";}
     virtual std::string get_ll_type(){return "";}
-    virtual void force_type(std::string type){}
+    virtual void force_type(std::string){}
     /*
         Try to enforce a specific type
     */
@@ -38,4 +39,6 @@ class AST {
 
 extern std::string max_prec_type(std::string a, std::string b);
 extern std::string intab(std::string);
+extern std::string insert(std::string val, std::string target);
+extern std::string rinsert(std::string val, std::string target);
 

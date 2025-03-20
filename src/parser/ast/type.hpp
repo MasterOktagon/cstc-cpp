@@ -36,7 +36,7 @@ class TypeAST : public AST {
     */
     
     virtual std::string get_type(){return name;}
-    virtual std::string get_ll_type(){return "";}
+    virtual std::string get_ll_type(){return parser::ll_type(name);}
     virtual void force_type(std::string type){}
     /*
         Try to enforce a specific type

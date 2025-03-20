@@ -271,7 +271,9 @@ void Module::parse(){
     #ifdef DEBUG
         std::cout << module_name << " parsed!" << std::endl;
         if(root != nullptr){
-            std::cout << root->emit_cst() << std::endl;
+            auto i = new int;
+            *i = 0;
+            std::cout << root->emit_ll(i, "") << std::endl;
         }
     #endif
 

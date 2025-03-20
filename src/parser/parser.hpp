@@ -33,4 +33,6 @@ namespace parser {
     extern bool isAtomic(std::string type);
 
     extern bool is_snake_case(std::string text);
+
+    extern std::string ll_type(std::string name);
 }

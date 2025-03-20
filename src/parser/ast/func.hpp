@@ -5,16 +5,18 @@
 #include <vector>
 #include "../../lexer/lexer.hpp"
 #include "../symboltable.hpp"
+#include "base_math.hpp"
 
 
-class SubBlockAST : public AST {
+class FuncCallAST : public ExpressionAST {
+    std::string name;
+    symbol::Func* fn = nullptr;
+    std::vector<AST*> params;
+
     public:
-
-    std::vector<AST*> contents = {};
-
-    SubBlockAST(){}
+    FuncCallAST(std::string name, std::vector<AST*> params, symbol::Func* f){this->name=name; this->params=params; this->fn = f;}
     virtual bool is_const(){return false;} // do constant folding or not
-    virtual ~SubBlockAST(){}
+    virtual ~FuncCallAST(){}
     virtual std::string emit_ll(int* locc, std::string inp);
     /*
         Emit llvm IR code in human-readable form
@@ -31,7 +33,7 @@ class SubBlockAST : public AST {
         Emit C* code
     */
     
-    virtual std::string get_type(){return "void";}
+    virtual std::string get_type(){return fn->type;}
     virtual std::string get_ll_type(){return "";}
     virtual void force_type(std::string type){}
     /*
@@ -40,5 +42,3 @@ class SubBlockAST : public AST {
 
     static AST* parse(std::vector<lexer::Token>, int local, symbol::Namespace* sr, std::string expected_type="@unknown");
 };
-
-

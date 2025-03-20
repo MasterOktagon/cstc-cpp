@@ -2,7 +2,6 @@
 #include <string>
 #include "../symboltable.hpp"
 #include "../../lexer/lexer.hpp"
-//#include "../parser.hpp"
 
 #include "ast.hpp"
 
@@ -29,7 +28,8 @@ class IntLiteralAST : public LiteralAST {
     std::string get_type(){return (tsigned ? std::string("int") : std::string("uint")) + std::to_string(bits);}
     std::string get_ll_type(){return std::string("i") + std::to_string(bits);}
     std::string get_value(){return value;}
-    std::string emit_ll(int locc=0);
+    virtual int nodeSize(){return 1;} // how many nodes to to do
+    virtual std::string emit_ll(int*, std::string);
     /*
         Emit llvm IR code in human-readable form
 
@@ -60,8 +60,8 @@ class BoolLiteralAST : public LiteralAST {
     std::string get_type(){return "bool";}
     std::string get_ll_type(){return "i1";}
     std::string get_value(){return std::to_string(value);}
-
-    std::string emit_ll(int locc=0);
+    virtual int nodeSize(){return 1;} // how many nodes to to do
+    virtual std::string emit_ll(int*, std::string);
     /*
         Emit llvm IR code in human-readable form
 
@@ -90,7 +90,8 @@ class FloatLiteralAST : public LiteralAST {
     std::string get_ll_type();
     std::string get_value(){return value;}
 
-    std::string emit_ll(int locc=0);
+    virtual int nodeSize(){return 1;} // how many nodes to to do
+    virtual std::string emit_ll(int*, std::string);
     /*
         Emit llvm IR code in human-readable form
 
@@ -118,7 +119,8 @@ class CharLiteralAST : public LiteralAST {
     std::string get_ll_type(){return "i16";};
     std::string get_value();
 
-    std::string emit_ll(int locc=0){return get_value();}
+    virtual int nodeSize(){return 1;} // how many nodes to to do
+    virtual std::string emit_ll(int*, std::string);
     /*
         Emit llvm IR code in human-readable form
 
@@ -146,7 +148,8 @@ class StringLiteralAST : public LiteralAST {
     std::string get_ll_type(){return "%class.String";};
     std::string get_value();
 
-    std::string emit_ll(int locc=0){return get_value();}
+    virtual int nodeSize(){return 1;} // how many nodes to to do
+    virtual std::string emit_ll(int*, std::string); // TODO: think of a possible struct for string
     /*
         Emit llvm IR code in human-readable form
 

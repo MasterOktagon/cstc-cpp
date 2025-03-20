@@ -3,11 +3,11 @@
 #include <vector>
 #include "../../lexer/lexer.hpp"
 #include "../symboltable.hpp"
-#include "../parser.hpp"
 #include "base_math.hpp"
 #include <string>
 
 AST* parseStatement(std::vector<lexer::Token> tokens, int local, symbol::Namespace* sr, std::string expected_type="@unknown");
+extern std::string parse_name(std::vector<lexer::Token>);
 
 class VarDeclAST : public AST {
 
@@ -18,7 +18,8 @@ class VarDeclAST : public AST {
     VarDeclAST(std::string name, AST* type);
     virtual bool is_const(){return false;} // do constant folding or not
     virtual ~VarDeclAST(){delete type;}
-    virtual std::string emit_ll(int locc=0){return "";}
+    virtual int nodeSize(){return 1;} // how many nodes to to do
+    virtual std::string emit_ll(int*, std::string);
     /*
         Emit llvm IR code in human-readable form
 
@@ -54,7 +55,8 @@ class VarInitlAST : public AST {
     VarInitlAST(std::string name, AST* type, AST* expr);
     virtual bool is_const(){return false;} // do constant folding or not
     virtual ~VarInitlAST(){delete type; delete expression;}
-    virtual std::string emit_ll(int locc=0){return "";}
+    virtual int nodeSize(){return expression->nodeSize() + 1;} // how many nodes to to do
+    virtual std::string emit_ll(int*, std::string);
     /*
         Emit llvm IR code in human-readable form
 
@@ -88,7 +90,8 @@ class VarAccesAST : public AST {
     VarAccesAST(std::string name, symbol::SymbolReference* sr);
     virtual bool is_const(){return false;} // do constant folding or not
     virtual ~VarAccesAST(){}
-    virtual std::string emit_ll(int locc=0){return "";}
+    virtual int nodeSize(){return 1;} // how many nodes to to do
+    virtual std::string emit_ll(int*, std::string);
     /*
         Emit llvm IR code in human-readable form
 
@@ -123,7 +126,8 @@ class VarSetAST : public ExpressionAST {
     VarSetAST(std::string name, symbol::SymbolReference* sr, AST* expr);
     virtual bool is_const(){return false;} // do constant folding or not
     virtual ~VarSetAST(){delete expr;}
-    virtual std::string emit_ll(int locc=0){return "";}
+    virtual int nodeSize(){return expr->nodeSize() + 1;} // how many nodes to to do
+    virtual std::string emit_ll(int*, std::string);
     /*
         Emit llvm IR code in human-readable form
 

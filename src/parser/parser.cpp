@@ -210,11 +210,12 @@ int parser::splitStack(std::vector<lexer::Token> t, std::initializer_list<lexer:
     int i;
     for(i=t.size()-1; i>=0 ; i--){
         if (t[i].type == lexer::Token::TokenType::PT_CLOSE || t[i].type == lexer::Token::TokenType::INDEX_CLOSE || t[i].type == lexer::Token::TokenType::BLOCK_CLOSE) {
+            if (s.size() == 0 && std::find(delimiter.begin(), delimiter.end(), t[i].type) != delimiter.end()) return i;
             s.push(t[i]);
         }
 
         else if (t[i].type == lexer::Token::TokenType::PT_OPEN){
-            if(s.size() == 0) parser::error("Unclosed CLAMP", t[i], "This CLAMP was not closed" , 46);
+            if(s.size() == 0) parser::error("Unclosed CLAMP", t[i], "This PARANTHESIS was not closed" , 46);
             if(s.top().type != lexer::Token::TokenType::PT_CLOSE) parser::error("Unopened " + match_token_clamp(s.top().type), s.top(), "This " + match_token_clamp(s.top().type) + " was not opened" , 47);
             s.pop();
         }
@@ -246,11 +247,12 @@ int parser::rsplitStack(std::vector<lexer::Token> t, std::initializer_list<lexer
     int i;
     for(i=0; i<t.size(); i++){
         if (t[i].type == lexer::Token::TokenType::PT_OPEN || t[i].type == lexer::Token::TokenType::INDEX_OPEN || t[i].type == lexer::Token::TokenType::BLOCK_OPEN) {
+            if (s.size() == 0 && std::find(delimiter.begin(), delimiter.end(), t[i].type) != delimiter.end()) return i;
             s.push(t[i]);
         }
 
         else if (t[i].type == lexer::Token::TokenType::PT_CLOSE){
-            if(s.size() == 0) parser::error("Unopened CLAMP", t[i], "This CLAMP was not opened" , 46);
+            if(s.size() == 0) parser::error("Unopened CLAMP", t[i], "This PARANTHESIS was not opened" , 46);
             if(s.top().type != lexer::Token::TokenType::PT_OPEN) parser::error("Unclosed " + match_token_clamp(s.top().type), s.top(), "This " + match_token_clamp(s.top().type) + " was not closed" , 47);
             s.pop();
         }
@@ -340,4 +342,25 @@ bool parser::is_snake_case(std::string text){
     const std::regex rx("[a-z\\_][a-z0-9\\_]*");
     std::cmatch m;
     return std::regex_match(text.c_str(), m, rx);
+}
+
+std::string parser::ll_type(std::string name){
+    if (name == "int8") return "i8";
+    if (name == "int16") return "i16";
+    if (name == "int32") return "i32";
+    if (name == "int64") return "i64";
+
+    if (name == "uint8") return "i8";
+    if (name == "uint16") return "i16";
+    if (name == "uint32") return "i32";
+    if (name == "uint64") return "i64";
+
+    if (name == "float16") return "half";
+    if (name == "float32") return "float";
+    if (name == "float64") return "double";
+
+    if (name == "char") return "i16";
+    if (name == "bool") return "i1";
+
+    return name;
 }

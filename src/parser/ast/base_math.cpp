@@ -1,6 +1,7 @@
 #include <string>
 #include "base_math.hpp"
 #include "ast.hpp"
+#include "func.hpp"
 #include "literal.hpp"
 #include <vector>
 #include "../../lexer/lexer.hpp"
@@ -28,25 +29,16 @@ std::string AddAST::get_ll_type(){
     return left->get_ll_type();
 }
 
-std::string AddAST::emit_ll(int locc){
-    std::string op = left->get_ll_type()[0] == 'i'? "add" : "fadd";
-    std::string out = std::string("%var.") + std::to_string(locc) + " = " + op + " " + left->get_ll_type() + " ";
-    std::string prec = "";
+std::string AddAST::emit_ll(int* locc, std::string inp){
     
-    if (left == dynamic_cast<LiteralAST*>(left)){
-        out += ((LiteralAST*) left)->get_value() + ", ";
-    } else {
-        prec += left->emit_ll(++locc);
-        out  += std::string("%var.") + std::to_string(locc) + ", ";
-    }
-    if (right == dynamic_cast<LiteralAST*>(right)){
-        out += ((LiteralAST*) right)->get_value() + "\n";
-    } else {
-        prec += right->emit_ll(++locc);
-        out  += std::string("%var.") + std::to_string(locc) + "\n";
-    }
+    std::string op = left->get_ll_type()[0] == 'i'? "add" : "fadd contract nsz";
+    std::string inc = std::string("{} = ") + op + " " + get_ll_type() + " {}, {}\n";
+    std::string l = right->emit_ll(locc, inc);
+    std::string r = left->emit_ll(locc, l);
+    r = insert(std::string("%") + std::to_string(++(*locc)), r);
+    inp = rinsert(std::string("%") + std::to_string(*locc), inp);
 
-    return prec + out;
+    return r + inp;
 }
 
 std::string AddAST::emit_cst(){
@@ -134,25 +126,16 @@ std::string SubAST::get_ll_type(){
     return left->get_ll_type();
 }
 
-std::string SubAST::emit_ll(int locc){
-    std::string op = left->get_ll_type()[0] == 'i'? "sub" : "fsub";
-    std::string out = std::string("%var.") + std::to_string(locc) + " = " + op + " " + left->get_ll_type() + " ";
-    std::string prec = "";
+std::string SubAST::emit_ll(int* locc, std::string inp){
     
-    if (left == dynamic_cast<LiteralAST*>(left)){
-        out += ((LiteralAST*) left)->get_value() + ", ";
-    } else {
-        prec += left->emit_ll(++locc);
-        out  += std::string("%var.") + std::to_string(locc) + ", ";
-    }
-    if (right == dynamic_cast<LiteralAST*>(right)){
-        out += ((LiteralAST*) right)->get_value() + "\n";
-    } else {
-        prec += right->emit_ll(++locc);
-        out  += std::string("%var.") + std::to_string(locc) + "\n";
-    }
+    std::string op = left->get_ll_type()[0] == 'i'? "sub" : "fsub contract nsz";
+    std::string inc = std::string("{} = ") + op + " " + get_ll_type() + " {}, {}\n";
+    std::string l = right->emit_ll(locc, inc);
+    std::string r = left->emit_ll(locc, l);
+    r = insert(std::string("%") + std::to_string(++(*locc)), r);
+    inp = rinsert(std::string("%") + std::to_string(*locc), inp);
 
-    return prec + out;
+    return r + inp;
 }
 
 std::string SubAST::emit_cst(){
@@ -197,25 +180,16 @@ std::string MulAST::get_ll_type(){
     return left->get_ll_type();
 }
 
-std::string MulAST::emit_ll(int locc){
-    std::string op = left->get_ll_type()[0] == 'i'? "mul" : "fmul";
-    std::string out = std::string("%var.") + std::to_string(locc) + " = " + op + " " + left->get_ll_type() + " ";
-    std::string prec = "";
+std::string MulAST::emit_ll(int* locc, std::string inp){
     
-    if (left == dynamic_cast<LiteralAST*>(left)){
-        out += ((LiteralAST*) left)->get_value() + ", ";
-    } else {
-        prec += left->emit_ll(++locc);
-        out  += std::string("%var.") + std::to_string(locc) + ", ";
-    }
-    if (right == dynamic_cast<LiteralAST*>(right)){
-        out += ((LiteralAST*) right)->get_value() + "\n";
-    } else {
-        prec += right->emit_ll(++locc);
-        out  += std::string("%var.") + std::to_string(locc) + "\n";
-    }
+    std::string op = left->get_ll_type()[0] == 'i'? "mul" : "fmul contract arcp nsz";
+    std::string inc = std::string("{} = ") + op + " " + get_ll_type() + " {}, {}\n";
+    std::string l = right->emit_ll(locc, inc);
+    std::string r = left->emit_ll(locc, l);
+    r = insert(std::string("%") + std::to_string(++(*locc)), r);
+    inp = rinsert(std::string("%") + std::to_string(*locc), inp);
 
-    return prec + out;
+    return r + inp;
 }
 
 std::string MulAST::emit_cst(){
@@ -289,25 +263,16 @@ std::string DivAST::get_ll_type(){
     return left->get_ll_type();
 }
 
-std::string DivAST::emit_ll(int locc){
-    std::string op = left->get_ll_type()[0] == 'i'? left->get_type()[0] == 'u' ? "udiv" : "sdiv" : "fdiv";
-    std::string out = std::string("%var.") + std::to_string(locc) + " = " + op + " " + left->get_ll_type() + " ";
-    std::string prec = "";
-    
-    if (left == dynamic_cast<LiteralAST*>(left)){
-        out += ((LiteralAST*) left)->get_value() + ", ";
-    } else {
-        prec += left->emit_ll(++locc);
-        out  += std::string("%var.") + std::to_string(locc) + ", ";
-    }
-    if (right == dynamic_cast<LiteralAST*>(right)){
-        out += ((LiteralAST*) right)->get_value() + "\n";
-    } else {
-        prec += right->emit_ll(++locc);
-        out  += std::string("%var.") + std::to_string(locc) + "\n";
-    }
+std::string DivAST::emit_ll(int* locc, std::string inp){
 
-    return prec + out;
+    std::string op = left->get_ll_type()[0] == 'i'? left->get_type()[0] == 'u' ? "udiv" : "sdiv" : "fdiv contract arcp nsz";
+    std::string inc = std::string("{} = ") + op + " " + get_ll_type() + " {}, {}\n";
+    std::string l = right->emit_ll(locc, inc);
+    std::string r = left->emit_ll(locc, l);
+    r = insert(std::string("%") + std::to_string(++(*locc)), r);
+    inp = rinsert(std::string("%") + std::to_string(*locc), inp);
+
+    return r + inp;
 }
 
 std::string DivAST::emit_cst(){
@@ -352,25 +317,15 @@ std::string ModAST::get_ll_type(){
     return left->get_ll_type();
 }
 
-std::string ModAST::emit_ll(int locc){
-    std::string op = left->get_ll_type()[0] == 'i'? left->get_type()[0] == 'u' ? "urem" : "srem" : "frem";
-    std::string out = std::string("%var.") + std::to_string(locc) + " = " + op + " " + left->get_ll_type() + " ";
-    std::string prec = "";
-    
-    if (left == dynamic_cast<LiteralAST*>(left)){
-        out += ((LiteralAST*) left)->get_value() + ", ";
-    } else {
-        prec += left->emit_ll(++locc);
-        out  += std::string("%var.") + std::to_string(locc) + ", ";
-    }
-    if (right == dynamic_cast<LiteralAST*>(right)){
-        out += ((LiteralAST*) right)->get_value() + "\n";
-    } else {
-        prec += right->emit_ll(++locc);
-        out  += std::string("%var.") + std::to_string(locc) + "\n";
-    }
+std::string ModAST::emit_ll(int* locc, std::string inp){
+    std::string op = left->get_ll_type()[0] == 'i'? left->get_type()[0] == 'u' ? "urem" : "srem" : "frem contract arcp nsz";
+    std::string inc = std::string("{} = ") + op + " " + get_ll_type() + " {}, {}\n";
+    std::string l = right->emit_ll(locc, inc);
+    std::string r = left->emit_ll(locc, l);
+    r = insert(std::string("%") + std::to_string(++(*locc)), r);
+    inp = rinsert(std::string("%") + std::to_string(*locc), inp);
 
-    return prec + out;
+    return r + inp;
 }
 
 std::string ModAST::emit_cst(){
@@ -415,7 +370,7 @@ std::string PowAST::get_ll_type(){
     return left->get_ll_type();
 }
 
-std::string PowAST::emit_ll(int locc){
+std::string PowAST::emit_ll(int* locc, std::string inp){
     return "";
 }
 
@@ -487,25 +442,15 @@ std::string LorAST::get_ll_type(){
     return left->get_ll_type();
 }
 
-std::string LorAST::emit_ll(int locc){
+std::string LorAST::emit_ll(int* locc, std::string inp){
     std::string op = "or";
-    std::string out = std::string("%var.") + std::to_string(locc) + " = " + op + " " + left->get_ll_type() + " ";
-    std::string prec = "";
-    
-    if (left == dynamic_cast<LiteralAST*>(left)){
-        out += ((LiteralAST*) left)->get_value() + ", ";
-    } else {
-        prec += left->emit_ll(++locc);
-        out  += std::string("%var.") + std::to_string(locc) + ", ";
-    }
-    if (right == dynamic_cast<LiteralAST*>(right)){
-        out += ((LiteralAST*) right)->get_value() + "\n";
-    } else {
-        prec += right->emit_ll(++locc);
-        out  += std::string("%var.") + std::to_string(locc) + "\n";
-    }
+    std::string inc = std::string("{} = ") + op + " " + get_ll_type() + " {}, {}\n";
+    std::string l = right->emit_ll(locc, inc);
+    std::string r = left->emit_ll(locc, l);
+    r = insert(std::string("%") + std::to_string(++(*locc)), r);
+    inp = rinsert(std::string("%") + std::to_string(*locc), inp);
 
-    return prec + out;
+    return r + inp;
 }
 
 std::string LorAST::emit_cst(){
@@ -564,25 +509,15 @@ std::string LandAST::get_ll_type(){
     return left->get_ll_type();
 }
 
-std::string LandAST::emit_ll(int locc){
+std::string LandAST::emit_ll(int* locc, std::string inp){
     std::string op = "and";
-    std::string out = std::string("%var.") + std::to_string(locc) + " = " + op + " " + left->get_ll_type() + " ";
-    std::string prec = "";
-    
-    if (left == dynamic_cast<LiteralAST*>(left)){
-        out += ((LiteralAST*) left)->get_value() + ", ";
-    } else {
-        prec += left->emit_ll(++locc);
-        out  += std::string("%var.") + std::to_string(locc) + ", ";
-    }
-    if (right == dynamic_cast<LiteralAST*>(right)){
-        out += ((LiteralAST*) right)->get_value() + "\n";
-    } else {
-        prec += right->emit_ll(++locc);
-        out  += std::string("%var.") + std::to_string(locc) + "\n";
-    }
+    std::string inc = std::string("{} = ") + op + " " + get_ll_type() + " {}, {}\n";
+    std::string l = right->emit_ll(locc, inc);
+    std::string r = left->emit_ll(locc, l);
+    r = insert(std::string("%") + std::to_string(++(*locc)), r);
+    inp = rinsert(std::string("%") + std::to_string(*locc), inp);
 
-    return prec + out;
+    return r + inp;
 }
 
 std::string LandAST::emit_cst(){
@@ -641,19 +576,8 @@ std::string AddrOfAST::get_ll_type(){
 std::string AddrOfAST::emit_cst(){
     return std::string("#") + of->emit_cst();
 }
-std::string AddrOfAST::emit_ll(int locc){
-    std::string op = "store";
-    std::string out = std::string("%var.") + std::to_string(locc) + " = " + op + " " + of->get_ll_type() + " ";
-    std::string prec = "";
-
-    if (of == dynamic_cast<LiteralAST*>(of)){
-        out += ((LiteralAST*) of)->get_value() + ", ptr poison\n";
-    } else {
-        prec += of->emit_ll(++locc);
-        out  += std::string("%var.") + std::to_string(locc) + ", ptr poison\n";
-    }
-
-    return prec + out;
+std::string AddrOfAST::emit_ll(int* locc, std::string){
+    return "";
 }
 
 AST* math::parse_pt(std::vector<lexer::Token> tokens, int local, symbol::Namespace* sr, std::string expected_type){
@@ -718,6 +642,77 @@ void CastAST::force_type(std::string t){
     }
 }
 
+std::string CastAST::emit_ll(int* locc, std::string inp){
+    std::string in_type = from->get_type();
+    std::string out_type = type->get_type();
+    if (in_type == "char") in_type = "int16"; // chars are unicode
+    if (out_type == "char") out_type = "int16"; // chars are unicode
+    if (in_type == "bool") in_type = "int1"; 
+    if (out_type == "bool") out_type = "int1";
+    std::string op = "";
+    std::string s = "";
+    std::regex i("u?int(1|8|16|32|64|128)");
+    std::regex f("float(16|32|64|128)");
+
+    // From int to int
+    if (std::regex_match(in_type, i) && std::regex_match(out_type, i)){
+        int bits_in = std::stoi(in_type.substr(3 + uint(in_type[0] == 'u')));
+        int bits_out = std::stoi(out_type.substr(3 + uint(out_type[0] == 'u')));
+
+        if (bits_in > bits_out) op = std::string("{} = trunc ") + parser::ll_type(in_type) + " {} to " + parser::ll_type(out_type) + "\n";
+        if (bits_in < bits_out) op = std::string("{} = zext ") + (in_type[0] == 'u' ? std::string(" ") : std::string("")) + parser::ll_type(in_type) + " {} to " + parser::ll_type(out_type) + "\n";
+        if (op != ""){
+            s = from->emit_ll(locc, op);
+            s = insert(std::string("%") + std::to_string(++(*locc)), s);
+            inp = rinsert(std::string("%") + std::to_string(*locc), inp);
+        }
+        else {
+            inp = from->emit_ll(locc, inp);
+        }
+    }
+    // From float to float
+    else if (std::regex_match(in_type, f) && std::regex_match(out_type, f)){
+        int bits_in = std::stoi(in_type.substr(5));
+        int bits_out = std::stoi(out_type.substr(5));
+
+        if (bits_in > bits_out) op = std::string("{} = fptrunc nsz ") + parser::ll_type(in_type) + " {} to " + parser::ll_type(out_type) + "\n";
+        if (bits_in < bits_out) op = std::string("{} = fpext nsz ") + parser::ll_type(in_type) + " {} to " + parser::ll_type(out_type) + "\n";
+        if (op != ""){
+            s = from->emit_ll(locc, op);
+            s = insert(std::string("%") + std::to_string(++(*locc)), s);
+            inp = rinsert(std::string("%") + std::to_string(*locc), inp);
+        }
+        else {
+            inp = from->emit_ll(locc, inp);
+        }
+    }
+    // From int to float
+    else if (std::regex_match(in_type, i) && std::regex_match(out_type, f)){
+        int bits_in = std::stoi(in_type.substr(5));
+        int bits_out = std::stoi(out_type.substr(5));
+
+        op = in_type[0] == 'u' ? std::string("uitofp") : std::string("sitofp");
+        std::string s = std::string("{} = ") + op + " " + parser::ll_type(in_type) + " {} to " + parser::ll_type(out_type);
+        s = from->emit_ll(locc, op);
+        s = insert(std::string("%") + std::to_string(++(*locc)), s);
+        inp = rinsert(std::string("%") + std::to_string(*locc), inp);
+    }
+
+    // float to int
+    else if (std::regex_match(in_type, f) && std::regex_match(out_type, i)){
+        int bits_in = std::stoi(in_type.substr(5));
+        int bits_out = std::stoi(out_type.substr(5));
+
+        op = out_type[0] == 'u' ? std::string("fptoui") : std::string("fptosi");
+        std::string s = std::string("{} = ") + op + " " + parser::ll_type(in_type) + " {} to " + parser::ll_type(out_type);
+        s = from->emit_ll(locc, op);
+        s = insert(std::string("%") + std::to_string(++(*locc)), s);
+        inp = rinsert(std::string("%") + std::to_string(*locc), inp);
+    }
+
+
+    return s + inp;
+}
 
 AST* math::parse(std::vector<lexer::Token> tokens, int local, symbol::Namespace* sr, std::string expected_type){
     std::cout << "math::parse" << std::endl;
@@ -737,6 +732,7 @@ AST* math::parse(std::vector<lexer::Token> tokens, int local, symbol::Namespace*
         LorAST::parse,
         
         CastAST::parse,
+        FuncCallAST::parse,
         parse_pt}, local, sr, expected_type);
 }
 

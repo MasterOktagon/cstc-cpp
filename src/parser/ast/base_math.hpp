@@ -28,7 +28,8 @@ class AddAST : public ExpressionAST {
     }
     std::string get_ll_type();
 
-    std::string emit_ll(int locc=0);
+    virtual int nodeSize(){return left->nodeSize() + right->nodeSize() + 1;} // how many nodes to to do
+    virtual std::string emit_ll(int*, std::string);
     /*
         Emit llvm IR code in human-readable form
 
@@ -56,7 +57,8 @@ class SubAST : public ExpressionAST {
     }
     std::string get_ll_type();
 
-    std::string emit_ll(int locc=0);
+    virtual int nodeSize(){return left->nodeSize() + right->nodeSize() + 1;} // how many nodes to to do
+    virtual std::string emit_ll(int*, std::string);
     /*
         Emit llvm IR code in human-readable form
 
@@ -82,7 +84,8 @@ class MulAST : public ExpressionAST {
     }
     std::string get_ll_type();
 
-    std::string emit_ll(int locc=0);
+    virtual int nodeSize(){return left->nodeSize() + right->nodeSize() + 1;} // how many nodes to to do
+    virtual std::string emit_ll(int*, std::string);
     /*
         Emit llvm IR code in human-readable form
 
@@ -109,7 +112,8 @@ class DivAST : public ExpressionAST {
     }
     std::string get_ll_type();
 
-    std::string emit_ll(int locc=0);
+    virtual int nodeSize(){return left->nodeSize() + right->nodeSize() + 1;} // how many nodes to to do
+    virtual std::string emit_ll(int*, std::string);
     /*
         Emit llvm IR code in human-readable form
 
@@ -135,7 +139,8 @@ class ModAST : public ExpressionAST {
     }
     std::string get_ll_type();
 
-    std::string emit_ll(int locc=0);
+    virtual int nodeSize(){return left->nodeSize() + right->nodeSize() + 1;} // how many nodes to to do
+    virtual std::string emit_ll(int*, std::string);
     /*
         Emit llvm IR code in human-readable form
 
@@ -161,7 +166,8 @@ class PowAST : public ExpressionAST {
     }
     std::string get_ll_type();
 
-    std::string emit_ll(int locc=0);
+    virtual int nodeSize(){return left->nodeSize() + right->nodeSize() + 1;} // how many nodes to to do
+    virtual std::string emit_ll(int*, std::string);
     /*
         Emit llvm IR code in human-readable form
 
@@ -188,7 +194,8 @@ class LorAST : public ExpressionAST {
     }
     std::string get_ll_type();
 
-    std::string emit_ll(int locc=0);
+    virtual int nodeSize(){return left->nodeSize() + right->nodeSize() + 1;} // how many nodes to to do
+    virtual std::string emit_ll(int*, std::string);
     /*
         Emit llvm IR code in human-readable form
 
@@ -215,7 +222,8 @@ class LandAST : public ExpressionAST {
     }
     std::string get_ll_type();
 
-    std::string emit_ll(int locc=0);
+    virtual int nodeSize(){return left->nodeSize() + right->nodeSize() + 1;} // how many nodes to to do
+    virtual std::string emit_ll(int*, std::string);
     /*
         Emit llvm IR code in human-readable form
 
@@ -240,7 +248,8 @@ class CastAST : public ExpressionAST {
     std::string get_type(){ return type->get_type(); }
     std::string get_ll_type(){return type->get_ll_type();}
 
-    std::string emit_ll(int locc=0){return "";}
+    virtual int nodeSize(){return 1;} // how many nodes to to do
+    virtual std::string emit_ll(int*, std::string);
     /*
         Emit llvm IR code in human-readable form
 
@@ -266,7 +275,8 @@ class AddrOfAST : public ExpressionAST {
     }
     std::string get_ll_type();
 
-    std::string emit_ll(int locc=0);
+    virtual int nodeSize(){return 1;} // how many nodes to to do
+    virtual std::string emit_ll(int*, std::string);
     /*
         Emit llvm IR code in human-readable form
 

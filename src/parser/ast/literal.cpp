@@ -4,9 +4,9 @@
 #include "ast.hpp"
 #include "../../lexer/lexer.hpp"
 #include "../parser.hpp"
+#include <cstdint>
 #include <string>
 #include <regex>
-#include <iostream>
 
 IntLiteralAST::IntLiteralAST(int bits, std::string value, bool tsigned, std::vector<lexer::Token> tokens){
     this->bits  = bits;
@@ -15,15 +15,15 @@ IntLiteralAST::IntLiteralAST(int bits, std::string value, bool tsigned, std::vec
     this->tokens  = tokens;
 }
 
-std::string IntLiteralAST::emit_ll(int locc){
-    return std::string("%") + std::to_string(locc) + " = i" + std::to_string(bits) + " " + value + "\n";
-}
-
 std::string IntLiteralAST::emit_cst(){
     return value;
 }
 
-AST* IntLiteralAST::parse(std::vector<lexer::Token> tokens, int local, symbol::Namespace* sr, std::string expected_type){
+std::string IntLiteralAST::emit_ll(int* locc, std::string inp){
+    return rinsert(get_value(), inp);
+}
+
+AST* IntLiteralAST::parse(std::vector<lexer::Token> tokens, int, symbol::Namespace*, std::string){
     if (tokens.size() < 1 || tokens.size() > 2) return nullptr;
         if (tokens[0].type == lexer::Token::TokenType::INT){
             return new IntLiteralAST(32, tokens[0].value, false, tokens);
@@ -63,14 +63,14 @@ BoolLiteralAST::BoolLiteralAST(bool value, std::vector<lexer::Token> tokens){
     this->tokens = tokens;
 }
 
-std::string BoolLiteralAST::emit_ll(int locc){
-    return std::string("%") + std::to_string(locc) + " = i1 " + std::to_string(value) + "\n";
+std::string BoolLiteralAST::emit_ll(int* locc, std::string inp){
+    return rinsert(get_value(), inp);
 }
 
 std::string BoolLiteralAST::emit_cst(){
     return value? "true" : "false";
 }
-AST* BoolLiteralAST::parse(std::vector<lexer::Token> tokens, int local, symbol::Namespace* sr, std::string expected_type){
+AST* BoolLiteralAST::parse(std::vector<lexer::Token> tokens, int, symbol::Namespace*, std::string){
     if (tokens.size() == 1){
         if (tokens[0].value == "true" || tokens[0].value == "false"){
             return new BoolLiteralAST(tokens[0].value == "true", tokens);
@@ -89,8 +89,8 @@ FloatLiteralAST::FloatLiteralAST(int bits, std::string value, std::vector<lexer:
     this->tokens = tokens;
 }
 
-std::string FloatLiteralAST::emit_ll(int locc){
-    return std::string("%") + std::to_string(locc) + " = " + get_ll_type() + " " + value + "\n";
+std::string FloatLiteralAST::emit_ll(int* locc, std::string inp){
+    return rinsert(get_value(), inp);
 }
 
 std::string FloatLiteralAST::emit_cst(){
@@ -104,7 +104,7 @@ std::string FloatLiteralAST::get_ll_type(){
     else                 return "fp128";
 }
 
-AST* FloatLiteralAST::parse(std::vector<lexer::Token> tokens, int local, symbol::Namespace* sr, std::string expected_type){
+AST* FloatLiteralAST::parse(std::vector<lexer::Token> tokens, int, symbol::Namespace*, std::string){
     if (tokens.size() < 1) return nullptr;
     bool sig=false;
     auto t = tokens;
@@ -146,7 +146,11 @@ CharLiteralAST::CharLiteralAST(std::string value, std::vector<lexer::Token> toke
     this->tokens = tokens;
 }
 
-AST* CharLiteralAST::parse(std::vector<lexer::Token> tokens, int local, symbol::Namespace* sr, std::string expected_type){
+std::string CharLiteralAST::emit_ll(int* locc, std::string inp){
+    return rinsert(get_value(), inp);
+}
+
+AST* CharLiteralAST::parse(std::vector<lexer::Token> tokens, int, symbol::Namespace*, std::string){
     if (tokens.size() != 1) return nullptr;
     if (tokens[0].type == lexer::Token::TokenType::CHAR){
         if (tokens[0].value.size() == 2){
@@ -166,21 +170,21 @@ AST* CharLiteralAST::parse(std::vector<lexer::Token> tokens, int local, symbol::
 }
 
 std::string CharLiteralAST::get_value(){
-    if (this->value == "'\\n'") return "\"\\00\\0A\"";
-    if (this->value == "'\\t'") return "\"\\00\\09\"";
-    if (this->value == "'\\v'") return "\"\\00\\0B\"";
-    if (this->value == "'\\f'") return "\"\\00\\0C\"";
-    if (this->value == "'\\r'") return "\"\\00\\0D\"";
-    if (this->value == "'\\a'") return "\"\\00\\07\"";
-    if (this->value == "'\\\"'") return "\"\\00\\22\"";
-    if (this->value == "'\\\\'") return "\"\\00\\5C\"";
-    if (this->value == "'\\\''") return "\"\\00\\27\"";
+    if (this->value == "'\\n'") return "u0x000A";
+    if (this->value == "'\\t'") return "u0x0009";
+    if (this->value == "'\\v'") return "u0x000B";
+    if (this->value == "'\\f'") return "u0x000C";
+    if (this->value == "'\\r'") return "u0x000D";
+    if (this->value == "'\\a'") return "u0x0007";
+    if (this->value == "'\\\"'") return "u0x0022";
+    if (this->value == "'\\\\'") return "u0x005C";
+    if (this->value == "'\\\''") return "u0x0027";
 
     if (this->value[1] == '\\' && this->value.size() == 8){
-        return std::string("\"\\") + this->value.substr(3, 2) + "\\" + this->value.substr(5, 2) + "\"";
+        return std::string("u0x") + this->value.substr(3, 2) + this->value.substr(5, 2);
     }
 
-    return std::string("\"") + this->value[1] + "\"";
+    return std::to_string((uint16_t) this->value[1]);
 }
 
 void CharLiteralAST::force_type(std::string type){
@@ -194,12 +198,16 @@ StringLiteralAST::StringLiteralAST(std::string value, std::vector<lexer::Token> 
     this->tokens = tokens;
 }
 
-AST* StringLiteralAST::parse(std::vector<lexer::Token> tokens, int local, symbol::Namespace* sr, std::string expected_type){
+AST* StringLiteralAST::parse(std::vector<lexer::Token> tokens, int, symbol::Namespace*, std::string){
     if (tokens.size() != 1) return nullptr;
     if (tokens[0].type == lexer::Token::TokenType::STRING){
         return new StringLiteralAST(tokens[0].value, tokens);
     }
     return nullptr;
+}
+
+std::string StringLiteralAST::emit_ll(int* locc, std::string inp){
+    return rinsert(get_value(), inp);
 }
 
 std::string StringLiteralAST::get_value(){

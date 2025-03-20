@@ -21,6 +21,16 @@ std::string SubBlockAST::emit_cst(){
     return ret;
 }
 
+std::string SubBlockAST::emit_ll(int* locc, std::string inp){
+    std::string ret = "";
+    for (AST* a : contents){
+        ret += " ; " + a->emit_cst() + "\n";
+        ret += a->emit_ll(locc, "");
+    }
+
+    return ret + inp;
+}
+
 AST* SubBlockAST::parse(std::vector<lexer::Token> tokens, int local, symbol::Namespace* sr, std::string){
     if (tokens.size() == 0) return new SubBlockAST;
     std::vector<AST*> contents;
